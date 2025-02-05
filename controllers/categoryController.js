@@ -1,6 +1,4 @@
 import categoryModel from "../models/categoryModel.js";
-import bcrypt from "bcrypt";
-import validator from "validator";
 
 //category user
 const addCategory = async (req, res) => {
