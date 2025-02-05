@@ -70,3 +70,6 @@ const registerUser = async (req, res) => {
 };
 
 export { loginUser, registerUser };
+
+//req: đối tượng yêu cầu từ client (đối tượng request), chứa các thông tin HTTP, URL, các phương thức HTTP (GET, POST, PUT, DELETE), headers, body, query, params
+//res: đối tượng trả về cho client (một đối tượng response)
