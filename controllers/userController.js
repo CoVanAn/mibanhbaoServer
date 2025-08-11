@@ -10,9 +10,15 @@ const createToken = (id) => {
 
 // Đăng nhập người dùng
 const loginUser = async (req, res) => {
+    console.log("Received login request:", req.body); // Debug dữ liệu đầu vào
+
     const { email, password } = req.body;
 
     try {
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password are required" });
+        }
+
         const user = await userModel.findOne({ email });
         if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });

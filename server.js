@@ -11,11 +11,17 @@ import 'dotenv/config'
 
 // app config
 const app = express();
-const port = process.env.PORT || 4001;
+const port = process.env.PORT || 4000;
 
 // middleware
 app.use(express.json());
 app.use(cors());
+
+// Debug middleware
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, req.body);
+    next();
+});
 
 // db config
 connectDB();
