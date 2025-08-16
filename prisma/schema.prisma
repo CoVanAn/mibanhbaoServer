@@ -1,0 +1,469 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Removed DBML generator to avoid generate errors after uninstalling prisma-dbml-generator
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/********************
+ * Enums
+ ********************/
+enum UserRole {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  COMPLETED
+  CANCELED
+  REFUNDED
+}
+
+enum FulfillmentMethod {
+  DELIVERY
+  PICKUP
+}
+
+enum PaymentStatus {
+  UNPAID
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PromotionType {
+  PERCENT
+  FIXED
+}
+
+/********************
+ * Catalog
+ ********************/
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  slug      String     @unique
+  parentId  Int?
+  position  Int        @default(0)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  parent    Category?  @relation("CategoryToSelf", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryToSelf")
+  products  ProductCategory[]
+  promotionCategories PromotionCategory[]
+
+  @@index([parentId, position])
+}
+
+model Product {
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String           @unique
+  description String?
+  isActive    Boolean          @default(true)
+  isFeatured  Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  media       ProductMedia[]
+  variants    ProductVariant[]
+  categories  ProductCategory[]
+  promotionProducts PromotionProduct[]
+  cartItems CartItem[]
+  orderItems OrderItem[]
+
+  @@index([isFeatured])
+}
+
+model ProductVariant {
+  id          Int       @id @default(autoincrement())
+  productId   Int
+  name        String
+  sku         String    @unique
+  barcode     String?
+  weightGram  Int?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  prices      Price[]
+  inventory   Inventory?
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  promotionVariants PromotionVariant[]
+
+  @@index([productId])
+}
+
+model ProductCategory {
+  productId  Int
+  categoryId Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model ProductMedia {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  url       String
+  alt       String?
+  position  Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+}
+
+model Inventory {
+  id          Int            @id @default(autoincrement())
+  variantId   Int
+  quantity    Int            @default(0)
+  safetyStock Int            @default(0)
+  updatedAt   DateTime       @updatedAt
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId])
+}
+
+model Price {
+  id        Int            @id @default(autoincrement())
+  variantId Int
+  amount    Decimal        @db.Decimal(10, 2)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  isActive  Boolean        @default(true)
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+  @@index([variantId, startsAt, endsAt])
+  @@index([variantId, isActive])
+}
+
+/********************
+ * Auth / User
+ ********************/
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  phone         String?        @unique
+  password      String
+  avatar        String?
+  role          UserRole       @default(CUSTOMER)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  addresses     Address[]
+  refreshTokens RefreshToken[]
+  oauthAccounts OAuthAccount[]
+  orders        Order[]
+  carts         Cart[]
+  sockets       Socket[]
+  couponRedemptions CouponRedemption[]
+  orderStatusChanges OrderStatusHistory[]
+}
+
+model RefreshToken {
+  token     String   @id
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OAuthAccount {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  provider           String
+  providerAccountId  String
+  accessToken        String?
+  refreshToken       String?
+  expiresAt          DateTime?
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+/********************
+ * Address
+ ********************/
+model Address {
+  id          Int       @id @default(autoincrement())
+  name        String    // Tên người nhận
+  phone       String    // Số điện thoại người nhận
+  company     String?   // Công ty (nếu có)
+  addressLine String    // Địa chỉ chi tiết (ví dụ: "Nhà 30 ngõ 63 gần ngân hàng...")
+  province    String    // Tỉnh / Thành phố
+  district    String    // Quận / Huyện
+  ward        String    // Phường / Xã
+
+  userId  Int?
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[] @relation("OrderAddress")
+  shipments Shipment[]
+}
+
+model Shipment {
+  id           Int      @id @default(autoincrement())
+  orderId      Int   @unique
+  toAddressId  Int
+  carrier      String?
+  trackingCode String?
+  status       String?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  raw          Json?
+
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  toAddress Address @relation(fields: [toAddressId], references: [id])
+
+  @@index([trackingCode])
+}
+
+/********************
+ * Promotion / Coupon
+ ********************/
+model Promotion {
+  id          Int           @id @default(autoincrement())
+  name        String
+  type        PromotionType
+  value       Int           // VND hoặc % (points)
+  startsAt    DateTime
+  endsAt      DateTime
+  minSubtotal Int?
+  maxUses     Int?
+  usedCount   Int           @default(0)
+  isActive    Boolean       @default(true)
+  isGlobal    Boolean       @default(false)
+
+  categories  PromotionCategory[]
+  products    PromotionProduct[]
+  variants    PromotionVariant[]
+}
+
+model PromotionCategory {
+  id          Int       @id @default(autoincrement())
+  promotionId Int
+  categoryId  Int
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, categoryId])
+  @@index([categoryId])
+}
+
+model PromotionProduct {
+  id          Int       @id @default(autoincrement())
+  promotionId Int
+  productId   Int
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@index([productId])
+}
+
+model PromotionVariant {
+  id          Int            @id @default(autoincrement())
+  promotionId Int
+  variantId   Int
+  promotion   Promotion      @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, variantId])
+  @@index([variantId])
+}
+
+model Coupon {
+  id               Int                 @id @default(autoincrement())
+  code             String              @unique
+  type             PromotionType
+  value            Int
+  startsAt         DateTime?
+  endsAt           DateTime?
+  minSubtotal      Int?
+  maxRedemptions   Int?
+  perUserLimit     Int?
+  isActive         Boolean             @default(true)
+
+  redemptions      CouponRedemption[]
+  carts Cart[]
+  orders Order[]
+}
+
+model CouponRedemption {
+  id              Int       @id @default(autoincrement())
+  couponId        Int
+  userId          Int?
+  orderId         Int
+  redeemedAt      DateTime  @default(now())
+  discountApplied Int       // VND
+
+  coupon          Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId])
+  @@index([couponId, userId])
+}
+
+/********************
+ * Cart / Order / Payment / Shipment
+ ********************/
+model Cart {
+  id         Int       @id @default(autoincrement())
+  userId     Int?
+  guestToken String?   @unique
+  couponId   Int?
+  currency   String    @default("VND")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coupon     Coupon?   @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  items      CartItem[]
+}
+
+model CartItem {
+  id        Int            @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  variantId Int
+  quantity  Int
+  unitPrice Decimal? @db.Decimal(10, 2)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@index([cartId])
+  @@unique([cartId, variantId])
+}
+
+model Order {
+  id           Int            @id @default(autoincrement())
+  code         String         @unique
+  userId       Int?
+  couponId     Int?
+  method       FulfillmentMethod
+  status       OrderStatus    @default(PENDING)
+  currency     String         @default("VND")
+  itemsSubtotal Decimal       @db.Decimal(10, 2)
+  shippingFee  Decimal        @db.Decimal(10, 2) @default(0)
+  discount     Decimal        @db.Decimal(10, 2) @default(0)
+  total        Decimal        @db.Decimal(10, 2)
+  customerNote String?
+  internalNote String?
+  pickupAt     DateTime?
+  scheduledAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coupon        Coupon?        @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  items         OrderItem[]
+  payments      Payment[]
+  statusHistory OrderStatusHistory[]
+  shipment      Shipment?
+  addressId     Int?
+  address       Address?       @relation("OrderAddress", fields: [addressId], references: [id])
+
+  // Opposite side of CouponRedemption.order (1-1)
+  couponRedemption CouponRedemption?
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id                Int             @id @default(autoincrement())
+  orderId           Int
+  productId         Int?
+  variantId         Int?
+  nameSnapshot      String
+  variantSnapshot   String?
+  skuSnapshot       String?
+  imageUrlSnapshot  String?
+  modifiersSnapshot Json?
+  unitPrice         Decimal @db.Decimal(10, 2)
+  quantity          Int
+  lineTotal         Decimal  @db.Decimal(10, 2)
+  createdAt         DateTime        @default(now())
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant?@relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model OrderStatusHistory {
+  id              Int         @id @default(autoincrement())
+  orderId         Int
+  fromStatus      OrderStatus?
+  toStatus        OrderStatus
+  changedByUserId Int?
+  reason          String?
+  createdAt       DateTime    @default(now())
+
+  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy  User?  @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  orderId     Int
+  provider    String
+  providerRef String?
+  amount      Decimal @db.Decimal(10, 2)
+  status      PaymentStatus @default(UNPAID)
+  paidAt      DateTime?
+  raw         Json?
+  createdAt   DateTime      @default(now())
+
+  order   Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  events  PaymentEvent[]
+
+  @@index([orderId])
+  @@unique([provider, providerRef])
+}
+
+model PaymentEvent {
+  id         Int      @id @default(autoincrement())
+  paymentId  Int
+  type       String
+  occurredAt DateTime @default(now())
+  raw        Json?
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+model Socket {
+  socketId String @id
+  userId   Int?
+  user     User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

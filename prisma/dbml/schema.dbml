@@ -1,0 +1,501 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Category {
+  id Int [pk, increment]
+  name String [not null]
+  slug String [unique, not null]
+  parentId Int
+  position Int [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  parent Category
+  children Category [not null]
+  products ProductCategory [not null]
+  promotionCategories PromotionCategory [not null]
+
+  Note: '*******************
+ * Catalog
+ *******************'
+}
+
+Table Product {
+  id Int [pk, increment]
+  name String [not null]
+  slug String [unique, not null]
+  description String
+  isActive Boolean [not null, default: true]
+  isFeatured Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  media ProductMedia [not null]
+  variants ProductVariant [not null]
+  categories ProductCategory [not null]
+  promotionProducts PromotionProduct [not null]
+  cartItems CartItem [not null]
+  orderItems OrderItem [not null]
+}
+
+Table ProductVariant {
+  id Int [pk, increment]
+  productId Int [not null]
+  name String [not null]
+  sku String [unique, not null]
+  barcode String
+  weightGram Int
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  product Product [not null]
+  prices Price [not null]
+  inventory Inventory
+  cartItems CartItem [not null]
+  orderItems OrderItem [not null]
+  promotionVariants PromotionVariant [not null]
+}
+
+Table ProductCategory {
+  productId Int [not null]
+  categoryId Int [not null]
+  product Product [not null]
+  category Category [not null]
+
+  indexes {
+    (productId, categoryId) [pk]
+  }
+}
+
+Table ProductMedia {
+  id Int [pk, increment]
+  productId Int [not null]
+  url String [not null]
+  alt String
+  position Int [not null, default: 0]
+  product Product [not null]
+}
+
+Table Inventory {
+  id Int [pk, increment]
+  variantId Int [unique, not null]
+  quantity Int [not null, default: 0]
+  safetyStock Int [not null, default: 0]
+  updatedAt DateTime [not null]
+  variant ProductVariant [not null]
+}
+
+Table Price {
+  id Int [pk, increment]
+  variantId Int [not null]
+  amount Int [not null]
+  startsAt DateTime
+  endsAt DateTime
+  isActive Boolean [not null, default: true]
+  variant ProductVariant [not null]
+}
+
+Table User {
+  id Int [pk, increment]
+  name String [not null]
+  email String [unique, not null]
+  phone String [unique]
+  password String [not null]
+  avatar String
+  role UserRole [not null, default: 'CUSTOMER']
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  addresses Address [not null]
+  refreshTokens RefreshToken [not null]
+  oauthAccounts OAuthAccount [not null]
+  orders Order [not null]
+  carts Cart [not null]
+  sockets Socket
+  couponRedemptions CouponRedemption [not null]
+  orderStatusChanges OrderStatusHistory [not null]
+
+  Note: '*******************
+ * Auth / User
+ *******************'
+}
+
+Table RefreshToken {
+  token String [pk]
+  userId Int [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  user User [not null]
+}
+
+Table OAuthAccount {
+  id Int [pk, increment]
+  userId Int [not null]
+  provider String [not null]
+  providerAccountId String [not null]
+  accessToken String
+  refreshToken String
+  expiresAt DateTime
+  user User [not null]
+
+  indexes {
+    (provider, providerAccountId) [unique]
+  }
+}
+
+Table Address {
+  id Int [pk, increment]
+  name String [not null]
+  phone String [not null]
+  company String
+  addressLine String [not null]
+  province String [not null]
+  district String [not null]
+  ward String [not null]
+  userId Int
+  user User
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  orders Order [not null]
+  shipments Shipment [not null]
+
+  Note: '*******************
+ * Address
+ *******************'
+}
+
+Table Shipment {
+  id Int [pk, increment]
+  orderId Int [unique, not null]
+  toAddressId Int [not null]
+  carrier String
+  trackingCode String
+  status String
+  shippedAt DateTime
+  deliveredAt DateTime
+  raw Json
+  order Order [not null]
+  toAddress Address [not null]
+}
+
+Table Promotion {
+  id Int [pk, increment]
+  name String [not null]
+  type PromotionType [not null]
+  value Int [not null]
+  startsAt DateTime [not null]
+  endsAt DateTime [not null]
+  minSubtotal Int
+  maxUses Int
+  usedCount Int [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  isGlobal Boolean [not null, default: false]
+  categories PromotionCategory [not null]
+  products PromotionProduct [not null]
+  variants PromotionVariant [not null]
+
+  Note: '*******************
+ * Promotion / Coupon
+ *******************'
+}
+
+Table PromotionCategory {
+  id Int [pk, increment]
+  promotionId Int [not null]
+  categoryId Int [not null]
+  promotion Promotion [not null]
+  category Category [not null]
+
+  indexes {
+    (promotionId, categoryId) [unique]
+  }
+}
+
+Table PromotionProduct {
+  id Int [pk, increment]
+  promotionId Int [not null]
+  productId Int [not null]
+  promotion Promotion [not null]
+  product Product [not null]
+
+  indexes {
+    (promotionId, productId) [unique]
+  }
+}
+
+Table PromotionVariant {
+  id Int [pk, increment]
+  promotionId Int [not null]
+  variantId Int [not null]
+  promotion Promotion [not null]
+  variant ProductVariant [not null]
+
+  indexes {
+    (promotionId, variantId) [unique]
+  }
+}
+
+Table Coupon {
+  id Int [pk, increment]
+  code String [unique, not null]
+  type PromotionType [not null]
+  value Int [not null]
+  startsAt DateTime
+  endsAt DateTime
+  minSubtotal Int
+  maxRedemptions Int
+  perUserLimit Int
+  isActive Boolean [not null, default: true]
+  redemptions CouponRedemption [not null]
+  carts Cart [not null]
+  orders Order [not null]
+}
+
+Table CouponRedemption {
+  id Int [pk, increment]
+  couponId Int [not null]
+  userId Int
+  orderId Int [unique, not null]
+  redeemedAt DateTime [default: `now()`, not null]
+  discountApplied Int [not null]
+  coupon Coupon [not null]
+  user User
+  order Order [not null]
+}
+
+Table Cart {
+  id Int [pk, increment]
+  userId Int
+  guestToken String [unique]
+  couponId Int
+  currency String [not null, default: 'VND']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User
+  coupon Coupon
+  items CartItem [not null]
+
+  Note: '*******************
+ * Cart / Order / Payment / Shipment
+ *******************'
+}
+
+Table CartItem {
+  id Int [pk, increment]
+  cartId Int [not null]
+  productId Int [not null]
+  variantId Int [not null]
+  quantity Int [not null]
+  unitPrice Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  cart Cart [not null]
+  product Product [not null]
+  variant ProductVariant [not null]
+
+  indexes {
+    (cartId, variantId) [unique]
+  }
+}
+
+Table Order {
+  id Int [pk, increment]
+  code String [unique, not null]
+  userId Int
+  couponId Int
+  method FulfillmentMethod [not null]
+  status OrderStatus [not null, default: 'PENDING']
+  currency String [not null, default: 'VND']
+  itemsSubtotal Int [not null]
+  shippingFee Int [not null, default: 0]
+  discount Int [not null, default: 0]
+  total Int [not null]
+  customerNote String
+  internalNote String
+  pickupAt DateTime
+  scheduledAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user User
+  coupon Coupon
+  items OrderItem [not null]
+  payments Payment [not null]
+  statusHistory OrderStatusHistory [not null]
+  shipment Shipment
+  addressId Int
+  address Address
+  couponRedemptions CouponRedemption [not null]
+}
+
+Table OrderItem {
+  id Int [pk, increment]
+  orderId Int [not null]
+  productId Int
+  variantId Int
+  nameSnapshot String [not null]
+  variantSnapshot String
+  skuSnapshot String
+  imageUrlSnapshot String
+  modifiersSnapshot Json
+  unitPrice Int [not null]
+  quantity Int [not null]
+  lineTotal Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  order Order [not null]
+  product Product
+  variant ProductVariant
+}
+
+Table OrderStatusHistory {
+  id Int [pk, increment]
+  orderId Int [not null]
+  fromStatus OrderStatus
+  toStatus OrderStatus [not null]
+  changedByUserId Int
+  reason String
+  createdAt DateTime [default: `now()`, not null]
+  order Order [not null]
+  changedBy User
+}
+
+Table Payment {
+  id Int [pk, increment]
+  orderId Int [not null]
+  provider String [not null]
+  providerRef String
+  amount Int [not null]
+  status PaymentStatus [not null, default: 'UNPAID']
+  paidAt DateTime
+  raw Json
+  createdAt DateTime [default: `now()`, not null]
+  order Order [not null]
+  events PaymentEvent [not null]
+
+  indexes {
+    (provider, providerRef) [unique]
+  }
+}
+
+Table PaymentEvent {
+  id Int [pk, increment]
+  paymentId Int [not null]
+  type String [not null]
+  occurredAt DateTime [default: `now()`, not null]
+  raw Json
+  payment Payment [not null]
+}
+
+Table Socket {
+  socketId String [pk]
+  userId Int [unique]
+  user User
+}
+
+Enum UserRole {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+Enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  COMPLETED
+  CANCELED
+  REFUNDED
+}
+
+Enum FulfillmentMethod {
+  DELIVERY
+  PICKUP
+}
+
+Enum PaymentStatus {
+  UNPAID
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+Enum PromotionType {
+  PERCENT
+  FIXED
+}
+
+Ref: Category.parentId - Category.id [delete: Set Null]
+
+Ref: ProductVariant.productId > Product.id [delete: Cascade]
+
+Ref: ProductCategory.productId > Product.id [delete: Cascade]
+
+Ref: ProductCategory.categoryId > Category.id [delete: Cascade]
+
+Ref: ProductMedia.productId > Product.id [delete: Cascade]
+
+Ref: Inventory.variantId - ProductVariant.id [delete: Cascade]
+
+Ref: Price.variantId > ProductVariant.id [delete: Cascade]
+
+Ref: RefreshToken.userId > User.id [delete: Cascade]
+
+Ref: OAuthAccount.userId > User.id [delete: Cascade]
+
+Ref: Address.userId > User.id [delete: Cascade]
+
+Ref: Shipment.orderId - Order.id [delete: Cascade]
+
+Ref: Shipment.toAddressId > Address.id
+
+Ref: PromotionCategory.promotionId > Promotion.id [delete: Cascade]
+
+Ref: PromotionCategory.categoryId > Category.id [delete: Cascade]
+
+Ref: PromotionProduct.promotionId > Promotion.id [delete: Cascade]
+
+Ref: PromotionProduct.productId > Product.id [delete: Cascade]
+
+Ref: PromotionVariant.promotionId > Promotion.id [delete: Cascade]
+
+Ref: PromotionVariant.variantId > ProductVariant.id [delete: Cascade]
+
+Ref: CouponRedemption.couponId > Coupon.id [delete: Cascade]
+
+Ref: CouponRedemption.userId > User.id [delete: Set Null]
+
+Ref: CouponRedemption.orderId > Order.id [delete: Cascade]
+
+Ref: Cart.userId > User.id [delete: Set Null]
+
+Ref: Cart.couponId > Coupon.id [delete: Set Null]
+
+Ref: CartItem.cartId > Cart.id [delete: Cascade]
+
+Ref: CartItem.productId > Product.id [delete: Restrict]
+
+Ref: CartItem.variantId > ProductVariant.id [delete: Restrict]
+
+Ref: Order.userId > User.id [delete: Set Null]
+
+Ref: Order.couponId > Coupon.id [delete: Set Null]
+
+Ref: Order.addressId > Address.id
+
+Ref: OrderItem.orderId > Order.id [delete: Cascade]
+
+Ref: OrderItem.productId > Product.id [delete: Set Null]
+
+Ref: OrderItem.variantId > ProductVariant.id [delete: Set Null]
+
+Ref: OrderStatusHistory.orderId > Order.id [delete: Cascade]
+
+Ref: OrderStatusHistory.changedByUserId > User.id [delete: Set Null]
+
+Ref: Payment.orderId > Order.id [delete: Cascade]
+
+Ref: PaymentEvent.paymentId > Payment.id [delete: Cascade]
+
+Ref: Socket.userId - User.id [delete: Set Null]
