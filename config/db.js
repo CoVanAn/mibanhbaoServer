@@ -1,7 +1,4 @@
-import mongoose from "mongoose";
-
+// Mongo connection disabled as we migrate to Prisma/Supabase.
 export const connectDB = async () => {
-    await mongoose.connect('mongodb+srv://covanan:cvan6323@cluster0.bdmttar.mongodb.net/food-del').then(() => console.log('MongoDB connected!')); 
-}
-
-
+  console.log("Connect with Postgre in Supabase.com");
+};

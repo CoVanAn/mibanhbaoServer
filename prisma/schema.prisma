@@ -163,6 +163,7 @@ model User {
   email         String         @unique
   phone         String?        @unique
   password      String
+  hasPassword   Boolean         @default(false)
   avatar        String?
   role          UserRole       @default(CUSTOMER)
   isActive      Boolean        @default(true)
