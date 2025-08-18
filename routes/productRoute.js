@@ -17,8 +17,11 @@ import {
   createVariant,
   updateVariant,
   deleteVariant,
+  getProductVariants,
+  getVariant,
   setVariantPrice,
   getVariantPrices,
+  updateVariantPrice,
   getInventory,
   updateInventory,
 } from "../controllers/product/index.js";
@@ -149,6 +152,8 @@ router.patch(
 );
 
 // Variants
+router.get("/:id/variants", getProductVariants);
+router.get("/:id/variants/:variantId", getVariant);
 router.post(
   "/:id/variants",
   authMiddleware,
@@ -168,16 +173,47 @@ router.delete(
   deleteVariant
 );
 
-// Price
+// Price - with product ID validation
+router.post(
+  "/:id/variants/:variantId/price",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  setVariantPrice
+);
+router.patch(
+  "/:id/variants/:variantId/price",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateVariantPrice
+);
+router.get("/:id/variants/:variantId/prices", getVariantPrices);
+
+// Price - shorthand for existing variants (alternative)
 router.post(
   "/variant/:variantId/price",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   setVariantPrice
 );
+router.patch(
+  "/variant/:variantId/price",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateVariantPrice
+);
 router.get("/variant/:variantId/prices", getVariantPrices);
 
 // Inventory
+router.get("/:id/variants/:variantId/inventory", getInventory);
+router.patch(
+  "/:id/variants/:variantId/inventory",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateInventory
+);
+
+// Inventory - shorthand
+router.get("/variant/:variantId", getVariant);
 router.get("/variant/:variantId/inventory", getInventory);
 router.patch(
   "/variant/:variantId/inventory",

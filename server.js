@@ -5,8 +5,8 @@ import passport from "./middleware/googleAuth.js";
 import { connectDB } from "./config/db.js";
 import productRouter from "./routes/productRoute.js";
 import userRouter from "./routes/userRoute.js";
-import cartRouter from "./routes/cartRoute.js";
-import orderRouter from "./routes/orderRoute.js";
+// import cartRouter from "./routes/cartRoute.js";
+// import orderRouter from "./routes/orderRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import authRouter from "./routes/authRoute.js";
 import "dotenv/config";
@@ -38,12 +38,11 @@ app.use((req, res, next) => {
 connectDB();
 
 // api endpoints
-// New product routes (and temporary alias for legacy /api/food)
 app.use("/api/product", productRouter);
-app.use("/images", express.static("uploads"));
+// app.use("/images", express.static("uploads"));
 app.use("/api/user", userRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
+// app.use("/api/cart", cartRouter);
+// app.use("/api/order", orderRouter);
 app.use("/api/category", categoryRouter);
 app.use("/auth", authRouter);
 

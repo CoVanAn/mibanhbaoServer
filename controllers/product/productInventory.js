@@ -1,18 +1,27 @@
 import prisma from "../../config/prisma.js";
 
 // GET /api/product/:id/variants/:variantId/inventory
+// GET /api/product/variant/:variantId/inventory
 export const getInventory = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    
+    if (!vid) {
+      return res.status(400).json({ message: "invalid variantId" });
+    }
 
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
     });
-    if (!variant || variant.productId !== pid) {
+    
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
+    }
+    
+    // If product ID provided, validate ownership
+    if (pid && variant.productId !== pid) {
+      return res.status(404).json({ message: "Variant not found in this product" });
     }
 
     const inventory = await prisma.inventory.findUnique({
@@ -29,36 +38,68 @@ export const getInventory = async (req, res) => {
 };
 
 // PATCH /api/product/:id/variants/:variantId/inventory
+// PATCH /api/product/variant/:variantId/inventory
 export const updateInventory = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    
+    if (!vid) {
+      return res.status(400).json({ message: "invalid variantId" });
+    }
 
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
     });
-    if (!variant || variant.productId !== pid) {
+    
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
-
-    const { quantity } = req.body;
-    if (quantity === undefined || quantity === null) {
-      return res.status(400).json({ message: "quantity required" });
+    
+    // If product ID provided, validate ownership
+    if (pid && variant.productId !== pid) {
+      return res.status(404).json({ message: "Variant not found in this product" });
     }
 
-    const qty = Number(quantity);
-    if (isNaN(qty) || qty < 0) {
-      return res
-        .status(400)
-        .json({ message: "quantity must be a non-negative number" });
+    const { quantity, safetyStock } = req.body;
+    
+    // At least one field is required
+    if (quantity === undefined && safetyStock === undefined) {
+      return res.status(400).json({ message: "quantity or safetyStock required" });
+    }
+
+    // Prepare update data
+    const updateData = {};
+    const createData = { variantId: vid };
+
+    // Validate and add quantity
+    if (quantity !== undefined && quantity !== null) {
+      const qty = Number(quantity);
+      if (isNaN(qty) || qty < 0) {
+        return res
+          .status(400)
+          .json({ message: "quantity must be a non-negative number" });
+      }
+      updateData.quantity = qty;
+      createData.quantity = qty;
+    }
+
+    // Validate and add safetyStock
+    if (safetyStock !== undefined && safetyStock !== null) {
+      const safety = Number(safetyStock);
+      if (isNaN(safety) || safety < 0) {
+        return res
+          .status(400)
+          .json({ message: "safetyStock must be a non-negative number" });
+      }
+      updateData.safetyStock = safety;
+      createData.safetyStock = safety;
     }
 
     const inventory = await prisma.inventory.upsert({
       where: { variantId: vid },
-      update: { quantity: qty },
-      create: { variantId: vid, quantity: qty },
+      update: updateData,
+      create: createData,
     });
 
     return res.json({ success: true, inventory });

@@ -28,10 +28,12 @@ import {
   createVariant,
   updateVariant,
   deleteVariant,
+  getProductVariants,
+  getVariant,
 } from "./productVariants.js";
 
 // Pricing management
-import { setVariantPrice, getVariantPrices } from "./productPricing.js";
+import { setVariantPrice, getVariantPrices, updateVariantPrice } from "./productPricing.js";
 
 // Inventory management
 import { getInventory, updateInventory } from "./productInventory.js";
@@ -42,10 +44,10 @@ import { slugify, uniqueSlug } from "./helpers.js";
 // Re-export all functions for named imports
 export {
   addProduct,
+  removeProduct,
   listProducts,
   getProduct,
   updateProduct,
-  removeProduct,
   deleteProduct,
   setProductCategories,
   addProductCategory,
@@ -57,8 +59,11 @@ export {
   createVariant,
   updateVariant,
   deleteVariant,
+  getProductVariants,
+  getVariant,
   setVariantPrice,
   getVariantPrices,
+  updateVariantPrice,
   getInventory,
   updateInventory,
   slugify,
@@ -83,8 +88,11 @@ export default {
   createVariant,
   updateVariant,
   deleteVariant,
+  getProductVariants,
+  getVariant,
   setVariantPrice,
   getVariantPrices,
+  updateVariantPrice,
   getInventory,
   updateInventory,
   slugify,
