@@ -157,12 +157,16 @@ export const removeCategory = async (req, res) => {
     if (childCount > 0) {
       return res
         .status(400)
-        .json({ message: `Category có ${childCount} danh mục con. Không thể xóa.` });
+        .json({
+          message: `Category có ${childCount} danh mục con. Không thể xóa.`,
+        });
     }
     if (linkCount > 0) {
       return res
         .status(400)
-        .json({ message: `Category đang liên kết với ${linkCount} sản phẩm. Không thể xóa.` });
+        .json({
+          message: `Category đang liên kết với ${linkCount} sản phẩm. Không thể xóa.`,
+        });
     }
     await prisma.category.delete({ where: { id } });
     return res.json({ success: true });

@@ -6,9 +6,14 @@ export const requireRoles = (...roles) => {
     try {
       const userId = req.userId || req.body.userId;
       if (!userId) return res.status(401).json({ message: "Unauthorized" });
-      const user = await prisma.user.findUnique({ where: { id: Number(userId) }, select: { role: true, isActive: true } });
-      if (!user || user.isActive === false) return res.status(401).json({ message: "Unauthorized" });
-      if (!roles.includes(user.role)) return res.status(403).json({ message: "Forbidden" });
+      const user = await prisma.user.findUnique({
+        where: { id: Number(userId) },
+        select: { role: true, isActive: true },
+      });
+      if (!user || user.isActive === false)
+        return res.status(401).json({ message: "Unauthorized" });
+      if (!roles.includes(user.role))
+        return res.status(403).json({ message: "Forbidden" });
       return next();
     } catch (err) {
       console.error("requireRoles error:", err);

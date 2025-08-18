@@ -60,20 +60,66 @@ const withUpload = (uploader) => (req, res, next) =>
   });
 
 // New endpoints (accept multiple with any field name)
-router.post("/add", authMiddleware, requireRoles("ADMIN", "STAFF"), withUpload(upload.any()), addProduct);
+router.post(
+  "/add",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  withUpload(upload.any()),
+  addProduct
+);
 router.get("/list", listProducts);
 router.get("/:idOrSlug", getProduct);
-router.patch("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateProduct);
+router.patch(
+  "/:id",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateProduct
+);
 // Fallbacks for clients without PATCH
-router.put("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateProduct);
-router.post("/update/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateProduct);
-router.post("/remove", authMiddleware, requireRoles("ADMIN", "STAFF"), removeProduct);
-router.delete("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), deleteProduct);
+router.put(
+  "/:id",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateProduct
+);
+router.post(
+  "/update/:id",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateProduct
+);
+router.post(
+  "/remove",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  removeProduct
+);
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  deleteProduct
+);
 
 // Category links
-router.put("/:id/categories", authMiddleware, requireRoles("ADMIN", "STAFF"), setProductCategories);
-router.post("/:id/categories/:categoryId", authMiddleware, requireRoles("ADMIN", "STAFF"), addProductCategory);
-router.delete("/:id/categories/:categoryId", authMiddleware, requireRoles("ADMIN", "STAFF"), removeProductCategoryLink);
+router.put(
+  "/:id/categories",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  setProductCategories
+);
+router.post(
+  "/:id/categories/:categoryId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  addProductCategory
+);
+router.delete(
+  "/:id/categories/:categoryId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  removeProductCategoryLink
+);
 
 // Media
 router.post(
@@ -83,21 +129,61 @@ router.post(
   withUpload(upload.any()),
   addProductMedia
 );
-router.delete("/:id/media/:mediaId", authMiddleware, requireRoles("ADMIN", "STAFF"), deleteProductMedia);
-router.patch("/:id/media/reorder", authMiddleware, requireRoles("ADMIN", "STAFF"), reorderProductMedia);
-router.patch("/:id/media/:mediaId", authMiddleware, requireRoles("ADMIN", "STAFF"), updateProductMedia);
+router.delete(
+  "/:id/media/:mediaId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  deleteProductMedia
+);
+router.patch(
+  "/:id/media/reorder",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  reorderProductMedia
+);
+router.patch(
+  "/:id/media/:mediaId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateProductMedia
+);
 
 // Variants
-router.post("/:id/variants", authMiddleware, requireRoles("ADMIN", "STAFF"), createVariant);
-router.patch("/variant/:variantId", authMiddleware, requireRoles("ADMIN", "STAFF"), updateVariant);
-router.delete("/variant/:variantId", authMiddleware, requireRoles("ADMIN", "STAFF"), deleteVariant);
+router.post(
+  "/:id/variants",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  createVariant
+);
+router.patch(
+  "/variant/:variantId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateVariant
+);
+router.delete(
+  "/variant/:variantId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  deleteVariant
+);
 
 // Price
-router.post("/variant/:variantId/price", authMiddleware, requireRoles("ADMIN", "STAFF"), setVariantPrice);
+router.post(
+  "/variant/:variantId/price",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  setVariantPrice
+);
 router.get("/variant/:variantId/prices", getVariantPrices);
 
 // Inventory
 router.get("/variant/:variantId/inventory", getInventory);
-router.patch("/variant/:variantId/inventory", authMiddleware, requireRoles("ADMIN", "STAFF"), updateInventory);
+router.patch(
+  "/variant/:variantId/inventory",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  updateInventory
+);
 
 export default router;

@@ -154,7 +154,13 @@ export const addProduct = async (req, res) => {
 // GET /api/products/list
 export const listProducts = async (req, res) => {
   try {
-  const { search, categoryId, page = 1, limit = 100, includeInactive } = req.query;
+    const {
+      search,
+      categoryId,
+      page = 1,
+      limit = 100,
+      includeInactive,
+    } = req.query;
     const take = Math.min(Number(limit) || 100, 200);
     const skip = ((Number(page) || 1) - 1) * take;
 
@@ -170,7 +176,7 @@ export const listProducts = async (req, res) => {
               },
             }
           : undefined,
-    String(includeInactive || "") === "1" ? undefined : { isActive: true },
+        String(includeInactive || "") === "1" ? undefined : { isActive: true },
       ].filter(Boolean),
     };
 
@@ -335,7 +341,9 @@ export const deleteProduct = async (req, res) => {
     // Remove from carts so customers can't buy it
     await prisma.cartItem.deleteMany({ where: { productId: pid } });
     // Cloudinary cleanup for all media
-    const medias = await prisma.productMedia.findMany({ where: { productId: pid } });
+    const medias = await prisma.productMedia.findMany({
+      where: { productId: pid },
+    });
     for (const m of medias) {
       if (m.url) {
         try {
@@ -351,7 +359,9 @@ export const deleteProduct = async (req, res) => {
     return res.json({ success: true, message: "Product deleted" });
   } catch (err) {
     console.error("deleteProduct error:", err);
-    return res.status(400).json({ success: false, message: "cannot delete product" });
+    return res
+      .status(400)
+      .json({ success: false, message: "cannot delete product" });
   }
 };
 
@@ -370,11 +380,16 @@ export const setProductCategories = async (req, res) => {
     if (!product) return res.status(404).json({ message: "Product not found" });
     // validate categories exist
     if (uniq.length) {
-      const found = await prisma.category.findMany({ where: { id: { in: uniq } } });
-      if (found.length !== uniq.length) return res.status(400).json({ message: "Some categories not found" });
+      const found = await prisma.category.findMany({
+        where: { id: { in: uniq } },
+      });
+      if (found.length !== uniq.length)
+        return res.status(400).json({ message: "Some categories not found" });
     }
     await prisma.$transaction([
-      prisma.productCategory.deleteMany({ where: { productId: id, NOT: { categoryId: { in: uniq } } } }),
+      prisma.productCategory.deleteMany({
+        where: { productId: id, NOT: { categoryId: { in: uniq } } },
+      }),
       ...uniq.map((cid) =>
         prisma.productCategory.upsert({
           where: { productId_categoryId: { productId: id, categoryId: cid } },
@@ -395,7 +410,8 @@ export const addProductCategory = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const categoryId = Number(req.params.categoryId);
-    if (!id || !categoryId) return res.status(400).json({ message: "invalid ids" });
+    if (!id || !categoryId)
+      return res.status(400).json({ message: "invalid ids" });
     await prisma.productCategory.upsert({
       where: { productId_categoryId: { productId: id, categoryId } },
       create: { productId: id, categoryId },
@@ -413,7 +429,8 @@ export const removeProductCategoryLink = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const categoryId = Number(req.params.categoryId);
-    if (!id || !categoryId) return res.status(400).json({ message: "invalid ids" });
+    if (!id || !categoryId)
+      return res.status(400).json({ message: "invalid ids" });
     await prisma.productCategory.delete({
       where: { productId_categoryId: { productId: id, categoryId } },
     });
@@ -470,12 +487,17 @@ export const deleteProductMedia = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const mediaId = Number(req.params.mediaId);
-    if (!id || !mediaId) return res.status(400).json({ message: "invalid ids" });
+    if (!id || !mediaId)
+      return res.status(400).json({ message: "invalid ids" });
     // Load media, attempt Cloudinary destroy by inferring public_id
-    const media = await prisma.productMedia.findUnique({ where: { id: mediaId } });
+    const media = await prisma.productMedia.findUnique({
+      where: { id: mediaId },
+    });
     if (media?.url) {
       try {
-        const match = media.url.match(/upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/);
+        const match = media.url.match(
+          /upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/
+        );
         const publicId = match ? match[1] : null;
         if (publicId) await cloudinary.uploader.destroy(publicId);
       } catch (e) {
@@ -484,10 +506,16 @@ export const deleteProductMedia = async (req, res) => {
     }
     await prisma.productMedia.delete({ where: { id: mediaId } });
     // Reindex positions for remaining media of this product
-    const medias = await prisma.productMedia.findMany({ where: { productId: id }, orderBy: { position: "asc" } });
+    const medias = await prisma.productMedia.findMany({
+      where: { productId: id },
+      orderBy: { position: "asc" },
+    });
     await Promise.all(
       medias.map((m, idx) =>
-        prisma.productMedia.update({ where: { id: m.id }, data: { position: idx } })
+        prisma.productMedia.update({
+          where: { id: m.id },
+          data: { position: idx },
+        })
       )
     );
     return res.json({ success: true });
@@ -502,23 +530,32 @@ export const reorderProductMedia = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const payload = Array.isArray(req.body) ? req.body : req.body?.order;
-    if (!id || !Array.isArray(payload)) return res.status(400).json({ message: "invalid payload" });
+    if (!id || !Array.isArray(payload))
+      return res.status(400).json({ message: "invalid payload" });
 
     const updates = payload
       .map((m) => ({ id: Number(m.id), position: Number(m.position) }))
       .filter((m) => Number.isFinite(m.id) && Number.isFinite(m.position));
-    if (updates.length === 0) return res.status(400).json({ message: "invalid payload" });
+    if (updates.length === 0)
+      return res.status(400).json({ message: "invalid payload" });
 
     // Ensure all media belong to this product
     const ids = updates.map((u) => u.id);
-    const owned = await prisma.productMedia.findMany({ where: { id: { in: ids }, productId: id } });
+    const owned = await prisma.productMedia.findMany({
+      where: { id: { in: ids }, productId: id },
+    });
     if (owned.length !== ids.length) {
-      return res.status(400).json({ message: "some media do not belong to this product" });
+      return res
+        .status(400)
+        .json({ message: "some media do not belong to this product" });
     }
 
     await prisma.$transaction(
       updates.map((m) =>
-        prisma.productMedia.update({ where: { id: m.id }, data: { position: m.position } })
+        prisma.productMedia.update({
+          where: { id: m.id },
+          data: { position: m.position },
+        })
       )
     );
     return res.json({ success: true, updated: updates.length });
@@ -534,7 +571,10 @@ export const updateProductMedia = async (req, res) => {
     const mediaId = Number(req.params.mediaId);
     const { alt } = req.body;
     if (!mediaId) return res.status(400).json({ message: "invalid id" });
-    const updated = await prisma.productMedia.update({ where: { id: mediaId }, data: { alt: alt || null } });
+    const updated = await prisma.productMedia.update({
+      where: { id: mediaId },
+      data: { alt: alt || null },
+    });
     return res.json({ success: true, id: updated.id });
   } catch (err) {
     console.error("updateProductMedia error:", err);
@@ -574,8 +614,12 @@ export const updateVariant = async (req, res) => {
     if (name !== undefined) data.name = name;
     if (sku !== undefined) data.sku = sku;
     if (isActive !== undefined)
-      data.isActive = typeof isActive === "boolean" ? isActive : String(isActive) === "true";
-    const updated = await prisma.productVariant.update({ where: { id: variantId }, data });
+      data.isActive =
+        typeof isActive === "boolean" ? isActive : String(isActive) === "true";
+    const updated = await prisma.productVariant.update({
+      where: { id: variantId },
+      data,
+    });
     return res.json({ success: true, id: updated.id });
   } catch (err) {
     console.error("updateVariant error:", err);
@@ -603,9 +647,13 @@ export const setVariantPrice = async (req, res) => {
     const { amount, startsAt, endsAt } = req.body;
     if (!variantId) return res.status(400).json({ message: "invalid id" });
     const amt = String(amount ?? "").trim();
-    if (!amt || Number.isNaN(Number(amt))) return res.status(400).json({ message: "amount must be a number" });
+    if (!amt || Number.isNaN(Number(amt)))
+      return res.status(400).json({ message: "amount must be a number" });
     await prisma.$transaction([
-      prisma.price.updateMany({ where: { variantId, isActive: true }, data: { isActive: false } }),
+      prisma.price.updateMany({
+        where: { variantId, isActive: true },
+        data: { isActive: false },
+      }),
       prisma.price.create({
         data: {
           variantId,
@@ -630,7 +678,7 @@ export const getVariantPrices = async (req, res) => {
     if (!variantId) return res.status(400).json({ message: "invalid id" });
     const prices = await prisma.price.findMany({
       where: { variantId },
-  orderBy: [{ isActive: "desc" }, { startsAt: "desc" }, { id: "desc" }],
+      orderBy: [{ isActive: "desc" }, { startsAt: "desc" }, { id: "desc" }],
     });
     return res.json(prices);
   } catch (err) {
@@ -660,8 +708,13 @@ export const updateInventory = async (req, res) => {
     const { quantity, safetyStock } = req.body;
     const q = quantity !== undefined ? Number(quantity) : undefined;
     const s = safetyStock !== undefined ? Number(safetyStock) : undefined;
-    if ((q !== undefined && Number.isNaN(q)) || (s !== undefined && Number.isNaN(s))) {
-      return res.status(400).json({ message: "quantity/safetyStock must be numbers" });
+    if (
+      (q !== undefined && Number.isNaN(q)) ||
+      (s !== undefined && Number.isNaN(s))
+    ) {
+      return res
+        .status(400)
+        .json({ message: "quantity/safetyStock must be numbers" });
     }
     const data = {};
     if (q !== undefined) data.quantity = Math.max(0, q);
@@ -669,7 +722,11 @@ export const updateInventory = async (req, res) => {
     const up = await prisma.inventory.upsert({
       where: { variantId },
       update: data,
-      create: { variantId, quantity: data.quantity || 0, safetyStock: data.safetyStock || 0 },
+      create: {
+        variantId,
+        quantity: data.quantity || 0,
+        safetyStock: data.safetyStock || 0,
+      },
     });
     return res.json({ success: true, variantId: up.variantId });
   } catch (err) {
