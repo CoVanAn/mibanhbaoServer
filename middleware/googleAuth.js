@@ -54,12 +54,12 @@ passport.use(
           const randomPassword = `oauth-google:${crypto
             .randomBytes(16)
             .toString("hex")}`;
-      user = await prisma.user.create({
+          user = await prisma.user.create({
             data: {
               name: profile.displayName || email.split("@")[0],
               email,
               password: randomPassword,
-        hasPassword: false,
+              hasPassword: false,
               avatar:
                 profile.photos && profile.photos.length > 0
                   ? profile.photos[0].value

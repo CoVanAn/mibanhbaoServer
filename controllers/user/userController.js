@@ -1,4 +1,4 @@
-import prisma from "../config/prisma.js";
+import prisma from "../../config/prisma.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs"; // Đổi tên lại cho dễ đọc
 import validator from "validator";
@@ -28,13 +28,11 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-  if (!user.hasPassword) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please sign in with Google or set a password first",
-        });
+    if (!user.hasPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please sign in with Google or set a password first",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -108,12 +106,10 @@ export const setPassword = async (req, res) => {
   try {
     const { password } = req.body;
     if (!password || password.length < 6) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password must be at least 6 characters",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
     }
 
     const userId = req.userId;

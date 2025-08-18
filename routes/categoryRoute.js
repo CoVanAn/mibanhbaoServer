@@ -1,10 +1,23 @@
-import express from 'express';
-import  { addCategory, listCategory } from '../controllers/categoryController.js';
+import express from "express";
+import {
+  addCategory,
+  listCategory,
+  getCategory,
+  updateCategory,
+  removeCategory,
+} from "../controllers/category/categoryPrismaController.js";
+import authMiddleware from "../middleware/auth.js";
+import { requireRoles } from "../middleware/roles.js";
 
 const categoryRouter = express.Router();
 
-categoryRouter.post('/add', addCategory);
-categoryRouter.get('/list', listCategory);
-// categoryRouter.post('/remove', removeCategory);
+categoryRouter.post("/add", authMiddleware, requireRoles("ADMIN", "STAFF"), addCategory);
+categoryRouter.get("/list", listCategory);
+categoryRouter.get("/:idOrSlug", getCategory);
+categoryRouter.patch("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateCategory);
+// Fallbacks if client/hosting has trouble with PATCH
+categoryRouter.put("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateCategory);
+categoryRouter.post("/update/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), updateCategory);
+categoryRouter.delete("/:id", authMiddleware, requireRoles("ADMIN", "STAFF"), removeCategory);
 
 export default categoryRouter;
