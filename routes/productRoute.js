@@ -2,10 +2,10 @@ import express from "express";
 import multer from "multer";
 import {
   addProduct,
+  removeProduct,
   listProducts,
   getProduct,
   updateProduct,
-  removeProduct,
   deleteProduct,
   setProductCategories,
   addProductCategory,
@@ -21,7 +21,7 @@ import {
   getVariantPrices,
   getInventory,
   updateInventory,
-} from "../controllers/product/productController.js";
+} from "../controllers/product/index.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
 

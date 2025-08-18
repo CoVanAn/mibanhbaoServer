@@ -40,7 +40,6 @@ connectDB();
 // api endpoints
 // New product routes (and temporary alias for legacy /api/food)
 app.use("/api/product", productRouter);
-app.use("/api/food", productRouter);
 app.use("/images", express.static("uploads"));
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);

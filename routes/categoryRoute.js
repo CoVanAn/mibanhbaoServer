@@ -5,7 +5,7 @@ import {
   getCategory,
   updateCategory,
   removeCategory,
-} from "../controllers/category/categoryPrismaController.js";
+} from "../controllers/category/index.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
 
