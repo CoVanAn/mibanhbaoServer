@@ -72,7 +72,8 @@ model Product {
   id          Int              @id @default(autoincrement())
   name        String
   slug        String           @unique
-  description String?
+  description String?          // Short description for SEO/preview
+  content     String?          @db.Text // Rich HTML content for blog-style
   isActive    Boolean          @default(true)
   isFeatured  Boolean          @default(false)
   createdAt   DateTime         @default(now())

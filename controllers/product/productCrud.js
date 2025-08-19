@@ -1,11 +1,12 @@
 import prisma from "../../config/prisma.js";
 import cloudinary from "../../config/cloudinary.js";
 import { uniqueSlug } from "./helpers.js";
+import { sanitizeProductContent, validateProductContent } from "../../utils/htmlSanitizer.js";
 
 // POST /api/products (or /api/product/add)
 export const addProduct = async (req, res) => {
   try {
-    const { name, price, description, categoryId } = req.body;
+    const { name, price, description, content, categoryId } = req.body;
     if (
       !name ||
       price === undefined ||
@@ -22,6 +23,24 @@ export const addProduct = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Price must be a number" });
+    }
+
+    // Validate and sanitize content if provided
+    let sanitizedContent = null;
+    if (content && content.trim()) {
+      const validation = validateProductContent(content);
+      if (!validation.isValid) {
+        return res
+          .status(400)
+          .json({ success: false, message: `Content validation failed: ${validation.errors.join(', ')}` });
+      }
+      
+      sanitizedContent = sanitizeProductContent(content);
+      if (!sanitizedContent) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Content sanitization failed" });
+      }
     }
 
     const slug = await uniqueSlug(name, "product");
@@ -88,6 +107,7 @@ export const addProduct = async (req, res) => {
         name,
         slug,
         description: description || null,
+        content: sanitizedContent,
         isActive: true,
         categories: connectCategory,
       },
@@ -222,6 +242,7 @@ export const getProduct = async (req, res) => {
       name: p.name,
       slug: p.slug,
       description: p.description,
+      content: p.content,
       isActive: p.isActive,
       isFeatured: p.isFeatured,
       image,
@@ -257,7 +278,7 @@ export const updateProduct = async (req, res) => {
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ message: "Not found" });
 
-    const { name, description, isActive, isFeatured } = req.body;
+    const { name, description, content, isActive, isFeatured } = req.body;
     const data = {};
 
     if (name && name !== existing.name) {
@@ -265,6 +286,29 @@ export const updateProduct = async (req, res) => {
       data.slug = await uniqueSlug(name, "product");
     }
     if (description !== undefined) data.description = description || null;
+    
+    // Handle content update
+    if (content !== undefined) {
+      if (content && content.trim()) {
+        const validation = validateProductContent(content);
+        if (!validation.isValid) {
+          return res
+            .status(400)
+            .json({ message: `Content validation failed: ${validation.errors.join(', ')}` });
+        }
+        
+        const sanitizedContent = sanitizeProductContent(content);
+        if (!sanitizedContent) {
+          return res
+            .status(400)
+            .json({ message: "Content sanitization failed" });
+        }
+        data.content = sanitizedContent;
+      } else {
+        data.content = null;
+      }
+    }
+    
     if (isActive !== undefined)
       data.isActive =
         typeof isActive === "boolean" ? isActive : String(isActive) === "true";

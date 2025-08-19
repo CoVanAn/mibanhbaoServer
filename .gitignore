@@ -28,3 +28,5 @@ coverage/
 
 # Optional: ignore uploads if not needed in repo
 uploads/
+test/
+examples/
