@@ -149,7 +149,9 @@ export const getVariant = async (req, res) => {
 
     // Nếu có productId trong URL, kiểm tra match
     if (pid && variant.productId !== pid) {
-      return res.status(404).json({ message: "Variant not found for this product" });
+      return res
+        .status(404)
+        .json({ message: "Variant not found for this product" });
     }
 
     return res.json({ success: true, variant });

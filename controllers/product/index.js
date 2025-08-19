@@ -33,7 +33,11 @@ import {
 } from "./productVariants.js";
 
 // Pricing management
-import { setVariantPrice, getVariantPrices, updateVariantPrice } from "./productPricing.js";
+import {
+  setVariantPrice,
+  getVariantPrices,
+  updateVariantPrice,
+} from "./productPricing.js";
 
 // Inventory management
 import { getInventory, updateInventory } from "./productInventory.js";

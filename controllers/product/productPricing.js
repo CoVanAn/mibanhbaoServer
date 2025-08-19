@@ -59,12 +59,12 @@ export const setVariantPrice = async (req, res) => {
 };
 
 // GET /api/product/:id/variants/:variantId/prices
-// GET /api/product/variant/:variantId/prices  
+// GET /api/product/variant/:variantId/prices
 export const getVariantPrices = async (req, res) => {
   try {
     const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
-    
+
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
@@ -72,21 +72,23 @@ export const getVariantPrices = async (req, res) => {
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
     });
-    
+
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
-    
+
     // If product ID provided, validate ownership
     if (pid && variant.productId !== pid) {
-      return res.status(404).json({ message: "Variant not found in this product" });
+      return res
+        .status(404)
+        .json({ message: "Variant not found in this product" });
     }
 
     const prices = await prisma.price.findMany({
       where: { variantId: vid },
       orderBy: [
         { isActive: "desc" }, // Active prices first
-        { id: "desc" }        // Then by creation order (newest first)
+        { id: "desc" }, // Then by creation order (newest first)
       ],
     });
 
@@ -114,15 +116,17 @@ export const updateVariantPrice = async (req, res) => {
 
     // Find the current active price
     const currentPrice = await prisma.price.findFirst({
-      where: { 
+      where: {
         variantId: vid,
-        isActive: true 
+        isActive: true,
       },
-      orderBy: { id: "desc" }
+      orderBy: { id: "desc" },
     });
 
     if (!currentPrice) {
-      return res.status(404).json({ message: "No active price found for this variant" });
+      return res
+        .status(404)
+        .json({ message: "No active price found for this variant" });
     }
 
     const { amount, startsAt, endsAt, isActive } = req.body;

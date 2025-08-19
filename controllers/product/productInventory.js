@@ -6,7 +6,7 @@ export const getInventory = async (req, res) => {
   try {
     const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
-    
+
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
@@ -14,14 +14,16 @@ export const getInventory = async (req, res) => {
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
     });
-    
+
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
-    
+
     // If product ID provided, validate ownership
     if (pid && variant.productId !== pid) {
-      return res.status(404).json({ message: "Variant not found in this product" });
+      return res
+        .status(404)
+        .json({ message: "Variant not found in this product" });
     }
 
     const inventory = await prisma.inventory.findUnique({
@@ -43,7 +45,7 @@ export const updateInventory = async (req, res) => {
   try {
     const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
-    
+
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
@@ -51,21 +53,25 @@ export const updateInventory = async (req, res) => {
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
     });
-    
+
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
-    
+
     // If product ID provided, validate ownership
     if (pid && variant.productId !== pid) {
-      return res.status(404).json({ message: "Variant not found in this product" });
+      return res
+        .status(404)
+        .json({ message: "Variant not found in this product" });
     }
 
     const { quantity, safetyStock } = req.body;
-    
+
     // At least one field is required
     if (quantity === undefined && safetyStock === undefined) {
-      return res.status(400).json({ message: "quantity or safetyStock required" });
+      return res
+        .status(400)
+        .json({ message: "quantity or safetyStock required" });
     }
 
     // Prepare update data
