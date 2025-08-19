@@ -1,29 +1,64 @@
 import express from "express";
-import prisma from "../config/prisma.js";
-import jwt from "jsonwebtoken";
-import {
-  loginUser,
-  registerUser,
-  setPassword,
-} from "../controllers/user/userController.js";
+import multer from "multer";
 import authMiddleware from "../middleware/auth.js";
+import {
+  // Profile
+  getUserProfile,
+  updateUserProfile,
+  changePassword,
+  // Address
+  getUserAddresses,
+  getAddress,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  // Avatar
+  uploadAvatar,
+  deleteAvatar,
+} from "../controllers/user/index.js";
 
-const userRouter = express.Router();
+const router = express.Router();
 
-// Lấy thông tin user từ JWT (Authorization: Bearer <token> hoặc header token)
-userRouter.get("/profile", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.userId;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
-    res.json({ user });
-  } catch (err) {
-    res.status(400).json({ message: "Token không hợp lệ" });
-  }
+// Setup multer for avatar upload
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Only PNG, JPEG, WEBP images are allowed"));
+    }
+    cb(null, true);
+  },
 });
 
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
-userRouter.post("/set-password", authMiddleware, setPassword);
+// Profile routes
+router.get("/profile", authMiddleware, getUserProfile);
+router.patch("/profile", authMiddleware, updateUserProfile);
+router.put("/profile", authMiddleware, updateUserProfile); // Fallback
 
-export default userRouter;
+// Password routes
+router.post("/change-password", authMiddleware, changePassword);
+
+// Address routes
+router.get("/addresses", authMiddleware, getUserAddresses);
+router.post("/addresses", authMiddleware, addAddress);
+router.get("/addresses/:id", authMiddleware, getAddress);
+router.patch("/addresses/:id", authMiddleware, updateAddress);
+router.put("/addresses/:id", authMiddleware, updateAddress); // Fallback
+router.delete("/addresses/:id", authMiddleware, deleteAddress);
+
+// Avatar routes
+router.post("/avatar", authMiddleware, upload.single("avatar"), uploadAvatar);
+router.delete("/avatar", authMiddleware, deleteAvatar);
+
+// Handle multer errors
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError || error.message.includes("image")) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+  next(error);
+});
+
+export default router;
