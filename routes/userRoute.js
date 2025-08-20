@@ -15,9 +15,20 @@ import {
   // Avatar
   uploadAvatar,
   deleteAvatar,
+  // Authentication
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  refreshToken,
 } from "../controllers/user/index.js";
 
 const router = express.Router();
+
+// Authentication routes (no auth middleware)
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.get("/me", authMiddleware, getCurrentUser);
+router.post("/refresh-token", authMiddleware, refreshToken);
 
 // Setup multer for avatar upload
 const storage = multer.memoryStorage();

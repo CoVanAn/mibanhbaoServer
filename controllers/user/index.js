@@ -17,6 +17,14 @@ import {
 // Avatar management
 import { uploadAvatar, deleteAvatar } from "./userAvatar.js";
 
+// Authentication
+import {
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  refreshToken,
+} from "./userAuth.js";
+
 export {
   getUserProfile,
   updateUserProfile,
@@ -28,6 +36,10 @@ export {
   deleteAddress,
   uploadAvatar,
   deleteAvatar,
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  refreshToken,
 };
 
 export default {
