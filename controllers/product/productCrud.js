@@ -194,7 +194,7 @@ export const listProducts = async (req, res) => {
       prisma.product.count({ where }),
     ]);
 
-    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds
+    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured
     const data = items.map((p) => {
       const firstVariant = p.variants?.[0];
       const currentPrice = firstVariant?.prices?.[0]?.amount ?? null;
@@ -206,6 +206,8 @@ export const listProducts = async (req, res) => {
         description: p.description,
         image,
         categoryIds: p.categories.map((c) => c.categoryId),
+        isActive: p.isActive,
+        isFeatured: p.isFeatured,
       };
     });
 
@@ -272,13 +274,30 @@ export const getProduct = async (req, res) => {
 // PATCH /api/product/:id
 export const updateProduct = async (req, res) => {
   try {
+    console.log("=== UPDATE PRODUCT DEBUG ===");
+    console.log("Request params:", req.params);
+    console.log("Request body:", req.body);
+    console.log("Request files:", req.files);
+    console.log("========================");
+
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ message: "invalid id" });
 
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ message: "Not found" });
 
-    const { name, description, content, isActive, isFeatured } = req.body;
+    const {
+      name,
+      description,
+      content,
+      isActive,
+      isFeatured,
+      price,
+      categoryId,
+      existingImageIds,
+      imagePositions,
+    } = req.body;
+
     const data = {};
 
     if (name && name !== existing.name) {
@@ -320,14 +339,217 @@ export const updateProduct = async (req, res) => {
 
     const updated = await prisma.product.update({ where: { id }, data });
 
+    // Handle price update (simplified approach)
+    if (price !== undefined && price !== null && String(price).trim() !== "") {
+      const priceValue = Number(String(price).trim());
+      console.log("Processing price update:", priceValue);
+
+      if (!isNaN(priceValue)) {
+        // Find or create the default variant
+        let variant = await prisma.productVariant.findFirst({
+          where: {
+            productId: id,
+            name: "Default",
+          },
+        });
+
+        if (!variant) {
+          // Create default variant if none exists
+          variant = await prisma.productVariant.create({
+            data: {
+              productId: id,
+              name: "Default",
+              sku: `${updated.slug}-default`,
+              isActive: true,
+            },
+          });
+          console.log("Created new default variant:", variant);
+        }
+
+        // Handle price update - use better logic for permanent prices
+        const currentPermanentPrice = await prisma.price.findFirst({
+          where: {
+            variantId: variant.id,
+            isActive: true,
+            startsAt: null,
+            endsAt: null,
+          },
+          orderBy: { id: 'desc' }
+        });
+
+        if (currentPermanentPrice) {
+          // Update existing permanent price
+          await prisma.price.update({
+            where: { id: currentPermanentPrice.id },
+            data: { amount: priceValue },
+          });
+          console.log("Updated permanent price:", priceValue);
+        } else {
+          // Deactivate all old permanent prices for this variant
+          await prisma.price.updateMany({
+            where: { 
+              variantId: variant.id,
+              startsAt: null,
+              endsAt: null 
+            },
+            data: { isActive: false }
+          });
+
+          // Create new permanent price
+          await prisma.price.create({
+            data: {
+              variantId: variant.id,
+              amount: priceValue,
+              isActive: true,
+              startsAt: null,
+              endsAt: null,
+            },
+          });
+          console.log("Created new permanent price:", priceValue);
+        }
+      }
+    }
+
+    // Handle category update
+    if (categoryId !== undefined) {
+      // Remove existing category relationships
+      await prisma.productCategory.deleteMany({
+        where: { productId: id },
+      });
+
+      // Add new category if provided
+      if (categoryId && categoryId !== null && String(categoryId).trim() !== "") {
+        const catId = Number(categoryId);
+        if (!isNaN(catId)) {
+          // Verify category exists
+          const categoryExists = await prisma.category.findUnique({
+            where: { id: catId },
+          });
+
+          if (categoryExists) {
+            await prisma.productCategory.create({
+              data: {
+                productId: id,
+                categoryId: catId,
+              },
+            });
+            console.log("Updated category:", catId);
+          }
+        }
+      }
+    }
+
+    // Handle image updates
+    console.log("Processing image updates...");
+    console.log("Existing image IDs:", existingImageIds);
+    console.log("Image positions:", imagePositions);
+
+    // Parse image positions if it's a string
+    let parsedImagePositions = imagePositions;
+    if (typeof imagePositions === 'string') {
+      try {
+        parsedImagePositions = JSON.parse(imagePositions);
+      } catch (e) {
+        console.error("Failed to parse imagePositions:", e);
+        parsedImagePositions = [];
+      }
+    }
+
+    // Update positions for existing images
+    if (Array.isArray(parsedImagePositions) && parsedImagePositions.length > 0) {
+      console.log("Updating image positions:", parsedImagePositions);
+      
+      for (const positionData of parsedImagePositions) {
+        if (positionData.id && positionData.position !== undefined) {
+          await prisma.productMedia.updateMany({
+            where: {
+              productId: id,
+              id: Number(positionData.id)
+            },
+            data: {
+              position: Number(positionData.position)
+            }
+          });
+        }
+      }
+      console.log("Image positions updated successfully");
+    }
+
+    // Handle new image uploads
+    const files = Array.isArray(req.files)
+      ? req.files
+      : [...(req.files?.newImages || []), ...(req.files?.images || [])];
+
+    if (files.length > 0) {
+      console.log("Processing new image uploads:", files.length);
+      const folder = process.env.CLOUDINARY_FOLDER || "mibanhbao/products";
+      
+      // Get current max position
+      const maxPosition = await prisma.productMedia.findFirst({
+        where: { productId: id },
+        orderBy: { position: 'desc' },
+        select: { position: true }
+      });
+
+      let startPosition = (maxPosition?.position || -1) + 1;
+
+      for (const file of files) {
+        try {
+          const uploadResult = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { folder, resource_type: "image" },
+              (err, result) => (err ? reject(err) : resolve(result))
+            );
+            stream.end(file.buffer);
+          });
+
+          await prisma.productMedia.create({
+            data: {
+              productId: id,
+              url: uploadResult.secure_url,
+              alt: `${updated.name} - Image ${startPosition + 1}`,
+              position: startPosition++,
+            },
+          });
+          
+          console.log("New image uploaded:", uploadResult.secure_url);
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+        }
+      }
+    }
+
+    // Remove images not in existingImageIds
+    if (Array.isArray(existingImageIds)) {
+      const numericImageIds = existingImageIds.map(id => Number(id)).filter(id => !isNaN(id));
+      
+      if (numericImageIds.length > 0) {
+        const deletedImages = await prisma.productMedia.deleteMany({
+          where: {
+            productId: id,
+            id: { notIn: numericImageIds }
+          }
+        });
+        console.log("Removed unused images:", deletedImages.count);
+      } else {
+        // If no existing images specified, remove all
+        const deletedImages = await prisma.productMedia.deleteMany({
+          where: { productId: id }
+        });
+        console.log("Removed all images:", deletedImages.count);
+      }
+    }
+
     // If product is deactivated, remove it from all carts
     if (data.isActive === false) {
       await prisma.cartItem.deleteMany({ where: { productId: id } });
     }
-    return res.json({ success: true, id: updated.id });
+
+    console.log("Product update completed successfully");
+    return res.json({ success: true, id: updated.id, message: "Product updated successfully" });
   } catch (err) {
     console.error("updateProduct error:", err);
-    return res.status(500).json({ message: "error" });
+    return res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
 

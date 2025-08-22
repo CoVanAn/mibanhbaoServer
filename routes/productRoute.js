@@ -76,6 +76,7 @@ router.patch(
   "/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  withUpload(upload.any()),
   updateProduct
 );
 // Fallbacks for clients without PATCH
@@ -83,12 +84,14 @@ router.put(
   "/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  withUpload(upload.any()),
   updateProduct
 );
 router.post(
   "/update/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  withUpload(upload.any()),
   updateProduct
 );
 router.post(
