@@ -35,14 +35,10 @@ export const addProduct = async (req, res) => {
     if (content && content.trim()) {
       const validation = validateProductContent(content);
       if (!validation.isValid) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: `Content validation failed: ${validation.errors.join(
-              ", "
-            )}`,
-          });
+        return res.status(400).json({
+          success: false,
+          message: `Content validation failed: ${validation.errors.join(", ")}`,
+        });
       }
 
       sanitizedContent = sanitizeProductContent(content);
@@ -191,10 +187,7 @@ export const listProducts = async (req, res) => {
         where,
         include: {
           media: { orderBy: { position: "asc" } },
-          variants: { 
-            include: { prices: { where: { isActive: true }, orderBy: { amount: "desc" } } },
-            orderBy: { createdAt: "asc" }
-          },
+          variants: { include: { prices: { where: { isActive: true } } } },
           categories: true,
         },
         orderBy: { createdAt: "desc" },
@@ -204,27 +197,11 @@ export const listProducts = async (req, res) => {
       prisma.product.count({ where }),
     ]);
 
-    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured + variants
+    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured
     const data = items.map((p) => {
       const firstVariant = p.variants?.[0];
-      const currentPrice = firstVariant?.prices?.[0]?.amount ?? p.price ?? null;
+      const currentPrice = firstVariant?.prices?.[0]?.amount ?? null;
       const image = p.media?.[0]?.url ?? null;
-      
-      // Include all variants with their current prices, sorted by price ascending
-      const variants = p.variants
-        .map(variant => {
-          const currentVariantPrice = variant.prices?.[0]?.amount ?? 0;
-          return {
-            id: variant.id,
-            name: variant.name,
-            sku: variant.sku,
-            isActive: variant.isActive,
-            price: currentVariantPrice,
-            currentPrice: currentVariantPrice
-          };
-        })
-        .sort((a, b) => a.price - b.price); // Sort by price ascending
-      
       return {
         id: p.id,
         name: p.name,
@@ -234,7 +211,6 @@ export const listProducts = async (req, res) => {
         categoryIds: p.categories.map((c) => c.categoryId),
         isActive: p.isActive,
         isFeatured: p.isFeatured,
-        variants: variants
       };
     });
 
@@ -257,11 +233,8 @@ export const getProduct = async (req, res) => {
       where,
       include: {
         media: { orderBy: { position: "asc" } },
-        variants: { 
-          include: { prices: { where: { isActive: true }, orderBy: { amount: "desc" } } },
-          orderBy: { createdAt: "asc" }
-        },
-        categories: true,
+        variants: { include: { prices: { where: { isActive: true } } } },
+        categories: { include: { category: true } },
       },
     });
     if (!p) return res.status(404).json({ message: "Not found" });
@@ -285,16 +258,17 @@ export const getProduct = async (req, res) => {
         alt: m.alt,
       })),
       price: currentPrice,
-      variants: p.variants
-        .map((v) => ({
-          id: v.id,
-          name: v.name,
-          sku: v.sku,
-          isActive: v.isActive,
-          price: v.prices?.[0]?.amount ?? null,
-        }))
-        .sort((a, b) => (a.price || 0) - (b.price || 0)), // Sort by price ascending
-      categoryIds: p.categories.map((c) => c.categoryId),
+      variants: p.variants.map((v) => ({
+        id: v.id,
+        name: v.name,
+        sku: v.sku,
+        isActive: v.isActive,
+        price: v.prices?.[0]?.amount ?? null,
+      })),
+      categories: p.categories.map((c) => ({
+        id: c.categoryId,
+        name: c.category?.name,
+      })),
     };
     return res.json(data);
   } catch (err) {
@@ -343,13 +317,11 @@ export const updateProduct = async (req, res) => {
       if (content && content.trim()) {
         const validation = validateProductContent(content);
         if (!validation.isValid) {
-          return res
-            .status(400)
-            .json({
-              message: `Content validation failed: ${validation.errors.join(
-                ", "
-              )}`,
-            });
+          return res.status(400).json({
+            message: `Content validation failed: ${validation.errors.join(
+              ", "
+            )}`,
+          });
         }
 
         const sanitizedContent = sanitizeProductContent(content);
@@ -400,7 +372,7 @@ export const updateProduct = async (req, res) => {
             },
           });
           console.log("Created new default variant:", variant);
-          
+
           // Auto-create inventory for new variant
           await createInventoryForVariant(variant.id, 0, 0);
         }
