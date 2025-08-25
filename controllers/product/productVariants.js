@@ -1,16 +1,29 @@
 import prisma from "../../config/prisma.js";
+import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
 
 // POST /api/product/:id/variants
 export const createVariant = async (req, res) => {
   try {
+    console.log("=== CREATE VARIANT DEBUG ===");
+    console.log("Params:", req.params);
+    console.log("Body:", req.body);
+    console.log("User:", req.user);
+
     const pid = Number(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const { name, sku, isActive = true } = req.body;
+    const { name, sku, isActive = true, initialStock = 0, safetyStock = 0 } = req.body;
     if (!name) return res.status(400).json({ message: "name required" });
+
+    console.log("Creating variant with data:", {
+      productId: pid,
+      name,
+      sku: sku || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      isActive,
+    });
 
     const variant = await prisma.productVariant.create({
       data: {
@@ -21,10 +34,17 @@ export const createVariant = async (req, res) => {
       },
     });
 
+    console.log("Created variant:", variant);
+
+    // Auto-create inventory for the new variant
+    console.log("Creating inventory with:", { variantId: variant.id, initialStock, safetyStock });
+    await createInventoryForVariant(variant.id, initialStock, safetyStock);
+
+    console.log("Success!");
     return res.json({ success: true, id: variant.id });
   } catch (err) {
     console.error("createVariant error:", err);
-    return res.status(500).json({ message: "error" });
+    return res.status(500).json({ message: "error", details: err.message });
   }
 };
 
@@ -110,15 +130,22 @@ export const getProductVariants = async (req, res) => {
       where: { productId: pid },
       include: {
         prices: {
-          orderBy: { id: "desc" },
+          orderBy: { amount: "asc" },
           take: 1,
         },
         inventory: true,
       },
-      orderBy: { id: "asc" },
+      orderBy: { createdAt: "asc" },
     });
 
-    return res.json({ success: true, variants });
+    // Sort variants by price ascending
+    const sortedVariants = variants.sort((a, b) => {
+      const priceA = a.prices?.[0]?.amount || 0;
+      const priceB = b.prices?.[0]?.amount || 0;
+      return priceA - priceB;
+    });
+
+    return res.json({ success: true, variants: sortedVariants });
   } catch (err) {
     console.error("getProductVariants error:", err);
     return res.status(500).json({ message: "error" });

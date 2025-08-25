@@ -1,4 +1,11 @@
 import prisma from "../../config/prisma.js";
+import { 
+  getCurrentPrice, 
+  getVariantPrices, 
+  validatePricePeriod,
+  setPermanentPrice,
+  setScheduledPrice 
+} from "../../utils/priceHelpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
 export const setVariantPrice = async (req, res) => {
@@ -25,33 +32,22 @@ export const setVariantPrice = async (req, res) => {
       return res.status(400).json({ message: "amount must be a number" });
     }
 
-    // Prepare price data
-    const priceData = {
-      variantId: vid,
-      amount: amountStr,
-      isActive: true,
-    };
+    try {
+      let result;
+      
+      // If no date restrictions, set as permanent price
+      if (!startsAt && !endsAt) {
+        result = await setPermanentPrice(vid, amountStr);
+      } else {
+        // Set as scheduled price with validation
+        result = await setScheduledPrice(vid, amountStr, startsAt, endsAt);
+      }
 
-    // Add optional datetime fields
-    if (startsAt !== undefined) {
-      priceData.startsAt = startsAt ? new Date(startsAt) : null;
+      return res.json({ success: true, price: result });
+    } catch (error) {
+      console.error("setVariantPrice error:", error);
+      return res.status(400).json({ message: error.message });
     }
-    if (endsAt !== undefined) {
-      priceData.endsAt = endsAt ? new Date(endsAt) : null;
-    }
-
-    // Deactivate old prices
-    await prisma.price.updateMany({
-      where: { variantId: vid },
-      data: { isActive: false },
-    });
-
-    // Create new price
-    const price = await prisma.price.create({
-      data: priceData,
-    });
-
-    return res.json({ success: true, id: price.id });
   } catch (err) {
     console.error("setVariantPrice error:", err);
     return res.status(500).json({ message: "error" });
@@ -60,10 +56,11 @@ export const setVariantPrice = async (req, res) => {
 
 // GET /api/product/:id/variants/:variantId/prices
 // GET /api/product/variant/:variantId/prices
-export const getVariantPrices = async (req, res) => {
+export const getVariantPricesController = async (req, res) => {
   try {
     const pid = req.params.id ? Number(req.params.id) : null;
     const vid = Number(req.params.variantId);
+    const { includeInactive } = req.query;
 
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
@@ -84,17 +81,17 @@ export const getVariantPrices = async (req, res) => {
         .json({ message: "Variant not found in this product" });
     }
 
-    const prices = await prisma.price.findMany({
-      where: { variantId: vid },
-      orderBy: [
-        { isActive: "desc" }, // Active prices first
-        { id: "desc" }, // Then by creation order (newest first)
-      ],
-    });
+    // Use helper function for better price ordering
+    const prices = await getVariantPrices(vid, includeInactive === 'true');
+    const currentPrice = await getCurrentPrice(vid);
 
-    return res.json({ prices });
+    return res.json({ 
+      prices,
+      currentPrice,
+      total: prices.length 
+    });
   } catch (err) {
-    console.error("getVariantPrices error:", err);
+    console.error("getVariantPricesController error:", err);
     return res.status(500).json({ message: "error" });
   }
 };

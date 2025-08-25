@@ -35,7 +35,7 @@ import {
 // Pricing management
 import {
   setVariantPrice,
-  getVariantPrices,
+  getVariantPricesController,
   updateVariantPrice,
 } from "./productPricing.js";
 
@@ -66,7 +66,7 @@ export {
   getProductVariants,
   getVariant,
   setVariantPrice,
-  getVariantPrices,
+  getVariantPricesController,
   updateVariantPrice,
   getInventory,
   updateInventory,
@@ -95,7 +95,7 @@ export default {
   getProductVariants,
   getVariant,
   setVariantPrice,
-  getVariantPrices,
+  getVariantPricesController,
   updateVariantPrice,
   getInventory,
   updateInventory,

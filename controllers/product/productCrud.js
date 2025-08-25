@@ -5,6 +5,8 @@ import {
   sanitizeProductContent,
   validateProductContent,
 } from "../../utils/htmlSanitizer.js";
+import { setPermanentPrice } from "../../utils/priceHelpers.js";
+import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
 
 // POST /api/products (or /api/product/add)
 export const addProduct = async (req, res) => {
@@ -126,19 +128,16 @@ export const addProduct = async (req, res) => {
       data: {
         productId: product.id,
         name: "Default",
-        sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        sku: `${product.slug}-default`,
         isActive: true,
       },
     });
 
-    // Create price (Decimal accepted as string)
-    await prisma.price.create({
-      data: {
-        variantId: variant.id,
-        amount: priceStr,
-        isActive: true,
-      },
-    });
+    // Create permanent price using helper
+    await setPermanentPrice(variant.id, priceStr);
+
+    // Auto-create inventory for the default variant
+    await createInventoryForVariant(variant.id, 0, 0);
 
     // Save medias with positions
     if (uploads.length > 0) {
@@ -192,7 +191,10 @@ export const listProducts = async (req, res) => {
         where,
         include: {
           media: { orderBy: { position: "asc" } },
-          variants: { include: { prices: { where: { isActive: true } } } },
+          variants: { 
+            include: { prices: { where: { isActive: true }, orderBy: { amount: "desc" } } },
+            orderBy: { createdAt: "asc" }
+          },
           categories: true,
         },
         orderBy: { createdAt: "desc" },
@@ -202,11 +204,27 @@ export const listProducts = async (req, res) => {
       prisma.product.count({ where }),
     ]);
 
-    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured
+    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured + variants
     const data = items.map((p) => {
       const firstVariant = p.variants?.[0];
-      const currentPrice = firstVariant?.prices?.[0]?.amount ?? null;
+      const currentPrice = firstVariant?.prices?.[0]?.amount ?? p.price ?? null;
       const image = p.media?.[0]?.url ?? null;
+      
+      // Include all variants with their current prices, sorted by price ascending
+      const variants = p.variants
+        .map(variant => {
+          const currentVariantPrice = variant.prices?.[0]?.amount ?? 0;
+          return {
+            id: variant.id,
+            name: variant.name,
+            sku: variant.sku,
+            isActive: variant.isActive,
+            price: currentVariantPrice,
+            currentPrice: currentVariantPrice
+          };
+        })
+        .sort((a, b) => a.price - b.price); // Sort by price ascending
+      
       return {
         id: p.id,
         name: p.name,
@@ -216,6 +234,7 @@ export const listProducts = async (req, res) => {
         categoryIds: p.categories.map((c) => c.categoryId),
         isActive: p.isActive,
         isFeatured: p.isFeatured,
+        variants: variants
       };
     });
 
@@ -238,7 +257,10 @@ export const getProduct = async (req, res) => {
       where,
       include: {
         media: { orderBy: { position: "asc" } },
-        variants: { include: { prices: { where: { isActive: true } } } },
+        variants: { 
+          include: { prices: { where: { isActive: true }, orderBy: { amount: "desc" } } },
+          orderBy: { createdAt: "asc" }
+        },
         categories: true,
       },
     });
@@ -263,13 +285,15 @@ export const getProduct = async (req, res) => {
         alt: m.alt,
       })),
       price: currentPrice,
-      variants: p.variants.map((v) => ({
-        id: v.id,
-        name: v.name,
-        sku: v.sku,
-        isActive: v.isActive,
-        price: v.prices?.[0]?.amount ?? null,
-      })),
+      variants: p.variants
+        .map((v) => ({
+          id: v.id,
+          name: v.name,
+          sku: v.sku,
+          isActive: v.isActive,
+          price: v.prices?.[0]?.amount ?? null,
+        }))
+        .sort((a, b) => (a.price || 0) - (b.price || 0)), // Sort by price ascending
       categoryIds: p.categories.map((c) => c.categoryId),
     };
     return res.json(data);
@@ -376,49 +400,14 @@ export const updateProduct = async (req, res) => {
             },
           });
           console.log("Created new default variant:", variant);
+          
+          // Auto-create inventory for new variant
+          await createInventoryForVariant(variant.id, 0, 0);
         }
 
-        // Handle price update - use better logic for permanent prices
-        const currentPermanentPrice = await prisma.price.findFirst({
-          where: {
-            variantId: variant.id,
-            isActive: true,
-            startsAt: null,
-            endsAt: null,
-          },
-          orderBy: { id: "desc" },
-        });
-
-        if (currentPermanentPrice) {
-          // Update existing permanent price
-          await prisma.price.update({
-            where: { id: currentPermanentPrice.id },
-            data: { amount: priceValue },
-          });
-          console.log("Updated permanent price:", priceValue);
-        } else {
-          // Deactivate all old permanent prices for this variant
-          await prisma.price.updateMany({
-            where: {
-              variantId: variant.id,
-              startsAt: null,
-              endsAt: null,
-            },
-            data: { isActive: false },
-          });
-
-          // Create new permanent price
-          await prisma.price.create({
-            data: {
-              variantId: variant.id,
-              amount: priceValue,
-              isActive: true,
-              startsAt: null,
-              endsAt: null,
-            },
-          });
-          console.log("Created new permanent price:", priceValue);
-        }
+        // Use price helper for better price management
+        await setPermanentPrice(variant.id, priceValue);
+        console.log("Updated price using helper:", priceValue);
       }
     }
 
