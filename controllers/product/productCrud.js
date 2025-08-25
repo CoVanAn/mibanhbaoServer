@@ -1,7 +1,10 @@
 import prisma from "../../config/prisma.js";
 import cloudinary from "../../config/cloudinary.js";
 import { uniqueSlug } from "./helpers.js";
-import { sanitizeProductContent, validateProductContent } from "../../utils/htmlSanitizer.js";
+import {
+  sanitizeProductContent,
+  validateProductContent,
+} from "../../utils/htmlSanitizer.js";
 
 // POST /api/products (or /api/product/add)
 export const addProduct = async (req, res) => {
@@ -32,9 +35,14 @@ export const addProduct = async (req, res) => {
       if (!validation.isValid) {
         return res
           .status(400)
-          .json({ success: false, message: `Content validation failed: ${validation.errors.join(', ')}` });
+          .json({
+            success: false,
+            message: `Content validation failed: ${validation.errors.join(
+              ", "
+            )}`,
+          });
       }
-      
+
       sanitizedContent = sanitizeProductContent(content);
       if (!sanitizedContent) {
         return res
@@ -305,7 +313,7 @@ export const updateProduct = async (req, res) => {
       data.slug = await uniqueSlug(name, "product");
     }
     if (description !== undefined) data.description = description || null;
-    
+
     // Handle content update
     if (content !== undefined) {
       if (content && content.trim()) {
@@ -313,9 +321,13 @@ export const updateProduct = async (req, res) => {
         if (!validation.isValid) {
           return res
             .status(400)
-            .json({ message: `Content validation failed: ${validation.errors.join(', ')}` });
+            .json({
+              message: `Content validation failed: ${validation.errors.join(
+                ", "
+              )}`,
+            });
         }
-        
+
         const sanitizedContent = sanitizeProductContent(content);
         if (!sanitizedContent) {
           return res
@@ -327,7 +339,7 @@ export const updateProduct = async (req, res) => {
         data.content = null;
       }
     }
-    
+
     if (isActive !== undefined)
       data.isActive =
         typeof isActive === "boolean" ? isActive : String(isActive) === "true";
@@ -374,7 +386,7 @@ export const updateProduct = async (req, res) => {
             startsAt: null,
             endsAt: null,
           },
-          orderBy: { id: 'desc' }
+          orderBy: { id: "desc" },
         });
 
         if (currentPermanentPrice) {
@@ -387,12 +399,12 @@ export const updateProduct = async (req, res) => {
         } else {
           // Deactivate all old permanent prices for this variant
           await prisma.price.updateMany({
-            where: { 
+            where: {
               variantId: variant.id,
               startsAt: null,
-              endsAt: null 
+              endsAt: null,
             },
-            data: { isActive: false }
+            data: { isActive: false },
           });
 
           // Create new permanent price
@@ -418,7 +430,11 @@ export const updateProduct = async (req, res) => {
       });
 
       // Add new category if provided
-      if (categoryId && categoryId !== null && String(categoryId).trim() !== "") {
+      if (
+        categoryId &&
+        categoryId !== null &&
+        String(categoryId).trim() !== ""
+      ) {
         const catId = Number(categoryId);
         if (!isNaN(catId)) {
           // Verify category exists
@@ -446,7 +462,7 @@ export const updateProduct = async (req, res) => {
 
     // Parse image positions if it's a string
     let parsedImagePositions = imagePositions;
-    if (typeof imagePositions === 'string') {
+    if (typeof imagePositions === "string") {
       try {
         parsedImagePositions = JSON.parse(imagePositions);
       } catch (e) {
@@ -456,19 +472,22 @@ export const updateProduct = async (req, res) => {
     }
 
     // Update positions for existing images
-    if (Array.isArray(parsedImagePositions) && parsedImagePositions.length > 0) {
+    if (
+      Array.isArray(parsedImagePositions) &&
+      parsedImagePositions.length > 0
+    ) {
       console.log("Updating image positions:", parsedImagePositions);
-      
+
       for (const positionData of parsedImagePositions) {
         if (positionData.id && positionData.position !== undefined) {
           await prisma.productMedia.updateMany({
             where: {
               productId: id,
-              id: Number(positionData.id)
+              id: Number(positionData.id),
             },
             data: {
-              position: Number(positionData.position)
-            }
+              position: Number(positionData.position),
+            },
           });
         }
       }
@@ -483,12 +502,12 @@ export const updateProduct = async (req, res) => {
     if (files.length > 0) {
       console.log("Processing new image uploads:", files.length);
       const folder = process.env.CLOUDINARY_FOLDER || "mibanhbao/products";
-      
+
       // Get current max position
       const maxPosition = await prisma.productMedia.findFirst({
         where: { productId: id },
-        orderBy: { position: 'desc' },
-        select: { position: true }
+        orderBy: { position: "desc" },
+        select: { position: true },
       });
 
       let startPosition = (maxPosition?.position || -1) + 1;
@@ -511,7 +530,7 @@ export const updateProduct = async (req, res) => {
               position: startPosition++,
             },
           });
-          
+
           console.log("New image uploaded:", uploadResult.secure_url);
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
@@ -521,20 +540,22 @@ export const updateProduct = async (req, res) => {
 
     // Remove images not in existingImageIds
     if (Array.isArray(existingImageIds)) {
-      const numericImageIds = existingImageIds.map(id => Number(id)).filter(id => !isNaN(id));
-      
+      const numericImageIds = existingImageIds
+        .map((id) => Number(id))
+        .filter((id) => !isNaN(id));
+
       if (numericImageIds.length > 0) {
         const deletedImages = await prisma.productMedia.deleteMany({
           where: {
             productId: id,
-            id: { notIn: numericImageIds }
-          }
+            id: { notIn: numericImageIds },
+          },
         });
         console.log("Removed unused images:", deletedImages.count);
       } else {
         // If no existing images specified, remove all
         const deletedImages = await prisma.productMedia.deleteMany({
-          where: { productId: id }
+          where: { productId: id },
         });
         console.log("Removed all images:", deletedImages.count);
       }
@@ -546,10 +567,16 @@ export const updateProduct = async (req, res) => {
     }
 
     console.log("Product update completed successfully");
-    return res.json({ success: true, id: updated.id, message: "Product updated successfully" });
+    return res.json({
+      success: true,
+      id: updated.id,
+      message: "Product updated successfully",
+    });
   } catch (err) {
     console.error("updateProduct error:", err);
-    return res.status(500).json({ message: "Internal server error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
   }
 };
 
