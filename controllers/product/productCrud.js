@@ -211,6 +211,15 @@ export const listProducts = async (req, res) => {
         categoryIds: p.categories.map((c) => c.categoryId),
         isActive: p.isActive,
         isFeatured: p.isFeatured,
+        variants: Array.isArray(p.variants)
+          ? p.variants.map((v) => ({
+              id: v.id,
+              name: v.name,
+              sku: v.sku,
+              isActive: v.isActive,
+              price: v.prices?.[0]?.amount ?? null,
+            }))
+          : [],
       };
     });
 
