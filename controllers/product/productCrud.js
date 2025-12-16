@@ -187,7 +187,7 @@ export const listProducts = async (req, res) => {
         where,
         include: {
           media: { orderBy: { position: "asc" } },
-          variants: { include: { prices: { where: { isActive: true } } } },
+          variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
           categories: true,
         },
         orderBy: { createdAt: "desc" },
@@ -218,6 +218,8 @@ export const listProducts = async (req, res) => {
               sku: v.sku,
               isActive: v.isActive,
               price: v.prices?.[0]?.amount ?? null,
+              quantity: v.inventory?.quantity ?? null,
+              safetyStock: v.inventory?.safetyStock ?? null,
             }))
           : [],
       };
@@ -242,7 +244,7 @@ export const getProduct = async (req, res) => {
       where,
       include: {
         media: { orderBy: { position: "asc" } },
-        variants: { include: { prices: { where: { isActive: true } } } },
+          variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
         categories: { include: { category: true } },
       },
     });
@@ -273,6 +275,8 @@ export const getProduct = async (req, res) => {
         sku: v.sku,
         isActive: v.isActive,
         price: v.prices?.[0]?.amount ?? null,
+        quantity: v.inventory?.quantity ?? null,
+        safetyStock: v.inventory?.safetyStock ?? null,
       })),
       categories: p.categories.map((c) => ({
         id: c.categoryId,
