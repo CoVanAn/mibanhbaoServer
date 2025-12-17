@@ -37,6 +37,7 @@ import {
   setVariantPrice,
   getVariantPricesController,
   updateVariantPrice,
+  deleteVariantPrice,
 } from "./productPricing.js";
 
 // Inventory management
@@ -68,6 +69,7 @@ export {
   setVariantPrice,
   getVariantPricesController,
   updateVariantPrice,
+  deleteVariantPrice,
   getInventory,
   updateInventory,
   slugify,
@@ -97,6 +99,7 @@ export default {
   setVariantPrice,
   getVariantPricesController,
   updateVariantPrice,
+  deleteVariantPrice,
   getInventory,
   updateInventory,
   slugify,

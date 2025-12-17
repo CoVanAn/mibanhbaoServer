@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma.js";
 import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
+import { getCurrentPrice } from "../../utils/priceHelpers.js";
 
 // POST /api/product/:id/variants
 export const createVariant = async (req, res) => {
@@ -130,22 +131,29 @@ export const getProductVariants = async (req, res) => {
       where: { productId: pid },
       include: {
         prices: {
-          orderBy: { amount: "asc" },
-          take: 1,
+          where: { isActive: true },
+          orderBy: [
+            { startsAt: 'desc' },
+            { id: 'desc' }
+          ],
         },
         inventory: true,
       },
       orderBy: { createdAt: "asc" },
     });
 
-    // Sort variants by price ascending
-    const sortedVariants = variants.sort((a, b) => {
-      const priceA = a.prices?.[0]?.amount || 0;
-      const priceB = b.prices?.[0]?.amount || 0;
-      return priceA - priceB;
-    });
+    // Get current price for each variant
+    const variantsWithCurrentPrice = await Promise.all(
+      variants.map(async (v) => {
+        const currentPrice = await getCurrentPrice(v.id);
+        return {
+          ...v,
+          currentPrice: currentPrice?.amount || null,
+        };
+      })
+    );
 
-    return res.json({ success: true, variants: sortedVariants });
+    return res.json({ success: true, variants: variantsWithCurrentPrice });
   } catch (err) {
     console.error("getProductVariants error:", err);
     return res.status(500).json({ message: "error" });

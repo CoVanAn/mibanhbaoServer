@@ -22,6 +22,7 @@ import {
   setVariantPrice,
   getVariantPricesController,
   updateVariantPrice,
+  deleteVariantPrice,
   getInventory,
   updateInventory,
 } from "../controllers/product/index.js";
@@ -183,13 +184,19 @@ router.post(
   requireRoles("ADMIN", "STAFF"),
   setVariantPrice
 );
+router.get("/:id/variants/:variantId/prices", getVariantPricesController);
 router.patch(
-  "/:id/variants/:variantId/price",
+  "/:id/variants/:variantId/price/:priceId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   updateVariantPrice
 );
-router.get("/:id/variants/:variantId/prices", getVariantPricesController);
+router.delete(
+  "/:id/variants/:variantId/price/:priceId",
+  authMiddleware,
+  requireRoles("ADMIN", "STAFF"),
+  deleteVariantPrice
+);
 
 // Price - shorthand for existing variants (alternative)
 router.post(

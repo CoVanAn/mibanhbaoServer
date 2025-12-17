@@ -5,7 +5,7 @@ import {
   sanitizeProductContent,
   validateProductContent,
 } from "../../utils/htmlSanitizer.js";
-import { setPermanentPrice } from "../../utils/priceHelpers.js";
+import { setPermanentPrice, getCurrentPrice } from "../../utils/priceHelpers.js";
 import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
 
 // POST /api/products (or /api/product/add)
@@ -198,32 +198,45 @@ export const listProducts = async (req, res) => {
     ]);
 
     // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured
-    const data = items.map((p) => {
-      const firstVariant = p.variants?.[0];
-      const currentPrice = firstVariant?.prices?.[0]?.amount ?? null;
-      const image = p.media?.[0]?.url ?? null;
-      return {
-        id: p.id,
-        name: p.name,
-        price: currentPrice,
-        description: p.description,
-        image,
-        categoryIds: p.categories.map((c) => c.categoryId),
-        isActive: p.isActive,
-        isFeatured: p.isFeatured,
-        variants: Array.isArray(p.variants)
-          ? p.variants.map((v) => ({
+    const data = await Promise.all(
+      items.map(async (p) => {
+        const image = p.media?.[0]?.url ?? null;
+        
+        // Get current prices for all variants
+        const variantsWithPrice = await Promise.all(
+          (p.variants || []).map(async (v) => {
+            const currentPrice = await getCurrentPrice(v.id);
+            return {
               id: v.id,
               name: v.name,
               sku: v.sku,
               isActive: v.isActive,
-              price: v.prices?.[0]?.amount ?? null,
+              price: currentPrice?.amount ?? null,
+              currentPrice: currentPrice?.amount ?? null,
               quantity: v.inventory?.quantity ?? null,
               safetyStock: v.inventory?.safetyStock ?? null,
-            }))
-          : [],
-      };
-    });
+            };
+          })
+        );
+        
+        // Product price is the default variant's current price
+        const defaultVariant = variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
+        const currentPrice = defaultVariant?.price ?? null;
+        
+        return {
+          id: p.id,
+          name: p.name,
+          price: currentPrice,
+          currentPrice,
+          description: p.description,
+          image,
+          categoryIds: p.categories.map((c) => c.categoryId),
+          isActive: p.isActive,
+          isFeatured: p.isFeatured,
+          variants: variantsWithPrice,
+        };
+      })
+    );
 
     return res.json(data);
   } catch (err) {
@@ -244,15 +257,35 @@ export const getProduct = async (req, res) => {
       where,
       include: {
         media: { orderBy: { position: "asc" } },
-          variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
+        variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
         categories: { include: { category: true } },
       },
     });
     if (!p) return res.status(404).json({ message: "Not found" });
 
-    const firstVariant = p.variants?.[0];
-    const currentPrice = firstVariant?.prices?.[0]?.amount ?? null;
     const image = p.media?.[0]?.url ?? null;
+    
+    // Get current price for each variant
+    const variantsWithPrice = await Promise.all(
+      (p.variants || []).map(async (v) => {
+        const currentPrice = await getCurrentPrice(v.id);
+        return {
+          id: v.id,
+          name: v.name,
+          sku: v.sku,
+          isActive: v.isActive,
+          price: currentPrice?.amount ?? null,
+          currentPrice: currentPrice?.amount ?? null,
+          quantity: v.inventory?.quantity ?? null,
+          safetyStock: v.inventory?.safetyStock ?? null,
+        };
+      })
+    );
+    
+    // Product price is the default variant's current price
+    const defaultVariant = variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
+    const productPrice = defaultVariant?.price ?? null;
+    
     const data = {
       id: p.id,
       name: p.name,
@@ -268,16 +301,9 @@ export const getProduct = async (req, res) => {
         position: m.position,
         alt: m.alt,
       })),
-      price: currentPrice,
-      variants: p.variants.map((v) => ({
-        id: v.id,
-        name: v.name,
-        sku: v.sku,
-        isActive: v.isActive,
-        price: v.prices?.[0]?.amount ?? null,
-        quantity: v.inventory?.quantity ?? null,
-        safetyStock: v.inventory?.safetyStock ?? null,
-      })),
+      price: productPrice,
+      currentPrice: productPrice,
+      variants: variantsWithPrice,
       categories: p.categories.map((c) => ({
         id: c.categoryId,
         name: c.category?.name,

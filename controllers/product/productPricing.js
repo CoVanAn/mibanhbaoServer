@@ -1,10 +1,10 @@
 import prisma from "../../config/prisma.js";
-import { 
-  getCurrentPrice, 
-  getVariantPrices, 
+import {
+  getCurrentPrice,
+  getVariantPrices,
   validatePricePeriod,
   setPermanentPrice,
-  setScheduledPrice 
+  setScheduledPrice,
 } from "../../utils/priceHelpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
@@ -34,7 +34,7 @@ export const setVariantPrice = async (req, res) => {
 
     try {
       let result;
-      
+
       // If no date restrictions, set as permanent price
       if (!startsAt && !endsAt) {
         result = await setPermanentPrice(vid, amountStr);
@@ -82,13 +82,13 @@ export const getVariantPricesController = async (req, res) => {
     }
 
     // Use helper function for better price ordering
-    const prices = await getVariantPrices(vid, includeInactive === 'true');
+    const prices = await getVariantPrices(vid, includeInactive === "true");
     const currentPrice = await getCurrentPrice(vid);
 
-    return res.json({ 
+    return res.json({
       prices,
       currentPrice,
-      total: prices.length 
+      total: prices.length,
     });
   } catch (err) {
     console.error("getVariantPricesController error:", err);
@@ -96,13 +96,18 @@ export const getVariantPricesController = async (req, res) => {
   }
 };
 
-// PATCH /api/product/:id/variants/:variantId/price
+// PATCH /api/product/:id/variants/:variantId/price/:priceId
 export const updateVariantPrice = async (req, res) => {
   try {
     const pid = Number(req.params.id);
     const vid = Number(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    const priceId = Number(req.params.priceId);
+
+    if (!pid || !vid || !priceId) {
+      return res
+        .status(400)
+        .json({ message: "invalid id, variantId, or priceId" });
+    }
 
     const variant = await prisma.productVariant.findUnique({
       where: { id: vid },
@@ -111,19 +116,14 @@ export const updateVariantPrice = async (req, res) => {
       return res.status(404).json({ message: "Variant not found" });
     }
 
-    // Find the current active price
-    const currentPrice = await prisma.price.findFirst({
-      where: {
-        variantId: vid,
-        isActive: true,
-      },
-      orderBy: { id: "desc" },
+    const existingPrice = await prisma.price.findUnique({
+      where: { id: priceId },
     });
 
-    if (!currentPrice) {
+    if (!existingPrice || existingPrice.variantId !== vid) {
       return res
         .status(404)
-        .json({ message: "No active price found for this variant" });
+        .json({ message: "Price not found for this variant" });
     }
 
     const { amount, startsAt, endsAt, isActive } = req.body;
@@ -149,15 +149,110 @@ export const updateVariantPrice = async (req, res) => {
       updateData.isActive = isActive;
     }
 
-    // Update the current active price
+    // Validate period if dates are being changed
+    if (
+      (startsAt !== undefined || endsAt !== undefined) &&
+      updateData.isActive !== false
+    ) {
+      const validation = await validatePricePeriod(
+        vid,
+        updateData.startsAt ?? existingPrice.startsAt,
+        updateData.endsAt ?? existingPrice.endsAt,
+        priceId
+      );
+
+      if (!validation.isValid) {
+        return res.status(400).json({ message: validation.message });
+      }
+    }
+
+    // Update the price
     const updatedPrice = await prisma.price.update({
-      where: { id: currentPrice.id },
+      where: { id: priceId },
       data: updateData,
     });
 
     return res.json({ success: true, price: updatedPrice });
   } catch (err) {
     console.error("updateVariantPrice error:", err);
-    return res.status(500).json({ message: "error" });
+    return res.status(500).json({ message: "error", details: err.message });
+  }
+};
+
+// DELETE /api/product/:id/variants/:variantId/price/:priceId
+export const deleteVariantPrice = async (req, res) => {
+  try {
+    const pid = Number(req.params.id);
+    const vid = Number(req.params.variantId);
+    const priceId = Number(req.params.priceId);
+
+    console.log(
+      "Deleting price:",
+      priceId,
+      "for variant:",
+      vid,
+      "product:",
+      pid
+    );
+
+    if (!pid || !vid || !priceId) {
+      return res
+        .status(400)
+        .json({ message: "invalid id, variantId, or priceId" });
+    }
+
+    // Kiểm tra variant tồn tại
+    const variant = await prisma.productVariant.findUnique({
+      where: { id: vid },
+    });
+
+    if (!variant || variant.productId !== pid) {
+      return res.status(404).json({ message: "Variant not found" });
+    }
+
+    // Kiểm tra price tồn tại
+    const existingPrice = await prisma.price.findUnique({
+      where: { id: priceId },
+    });
+
+    if (!existingPrice || existingPrice.variantId !== vid) {
+      return res
+        .status(404)
+        .json({ message: "Price not found for this variant" });
+    }
+
+    // Kiểm tra không xóa giá cuối cùng nếu nó là giá active duy nhất
+    const activePriceCount = await prisma.price.count({
+      where: {
+        variantId: vid,
+        isActive: true,
+      },
+    });
+
+    if (activePriceCount <= 1 && existingPrice.isActive) {
+      return res.status(400).json({
+        message:
+          "Cannot delete the last active price. Please add a new price first.",
+      });
+    }
+
+    // XÓA PRICE (hard delete)
+    const deletedPrice = await prisma.price.delete({
+      where: { id: priceId },
+    });
+
+    console.log("✓ Successfully deleted price:", priceId);
+    return res.json({
+      success: true,
+      message: "Price deleted successfully",
+      price: deletedPrice,
+    });
+  } catch (err) {
+    console.error("❌ deleteVariantPrice error:", err);
+    console.error("Details:", err.message);
+    return res.status(500).json({
+      message: "Cannot delete price",
+      details: err.message,
+    });
   }
 };
