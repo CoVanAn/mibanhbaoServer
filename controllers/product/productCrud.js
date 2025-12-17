@@ -387,12 +387,15 @@ export const updateProduct = async (req, res) => {
     const updated = await prisma.product.update({ where: { id }, data });
 
     // Handle price update (simplified approach)
-    if (price !== undefined && price !== null && String(price).trim() !== "") {
+    if (
+      price !== undefined &&
+      price !== null &&
+      String(price).trim() !== ""
+    ) {
       const priceValue = Number(String(price).trim());
       console.log("Processing price update:", priceValue);
 
       if (!isNaN(priceValue)) {
-        // Find or create the default variant
         let variant = await prisma.productVariant.findFirst({
           where: {
             productId: id,
@@ -401,7 +404,13 @@ export const updateProduct = async (req, res) => {
         });
 
         if (!variant) {
-          // Create default variant if none exists
+          variant = await prisma.productVariant.findFirst({
+            where: { productId: id },
+            orderBy: { createdAt: "asc" },
+          });
+        }
+
+        if (!variant) {
           variant = await prisma.productVariant.create({
             data: {
               productId: id,
@@ -411,15 +420,23 @@ export const updateProduct = async (req, res) => {
             },
           });
           console.log("Created new default variant:", variant);
-
-          // Auto-create inventory for new variant
           await createInventoryForVariant(variant.id, 0, 0);
         }
 
-        // Use price helper for better price management
-        await setPermanentPrice(variant.id, priceValue);
-        console.log("Updated price using helper:", priceValue);
+        const currentPrice = await getCurrentPrice(variant.id);
+        const currentAmount = currentPrice
+          ? Number(currentPrice.amount)
+          : null;
+
+        if (currentAmount !== null && currentAmount === priceValue) {
+          console.log("Skipping price update because value is unchanged");
+        } else {
+          await setPermanentPrice(variant.id, priceValue);
+          console.log("Updated price using helper:", priceValue);
+        }
       }
+    } else {
+      console.log("Price input missing or invalid, skipping price workflow");
     }
 
     // Handle category update
