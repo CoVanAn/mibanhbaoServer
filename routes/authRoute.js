@@ -24,7 +24,8 @@ router.get(
       { expiresIn: "7d" }
     );
     // Trả về token cho frontend (có thể trả về JSON hoặc redirect kèm token)
-    res.redirect(`http://localhost:5173?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}?token=${token}`);
     // res.json({ token, user });
   }
 );
