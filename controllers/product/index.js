@@ -2,6 +2,7 @@
 import {
   addProduct,
   listProducts,
+  listFeaturedProducts,
   getProduct,
   updateProduct,
   removeProduct,
@@ -51,6 +52,7 @@ export {
   addProduct,
   removeProduct,
   listProducts,
+  listFeaturedProducts,
   getProduct,
   updateProduct,
   deleteProduct,
@@ -81,6 +83,7 @@ export default {
   addProduct,
   removeProduct,
   listProducts,
+  listFeaturedProducts,
   getProduct,
   updateProduct,
   deleteProduct,

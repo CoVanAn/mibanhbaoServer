@@ -4,6 +4,7 @@ import {
   addProduct,
   removeProduct,
   listProducts,
+  listFeaturedProducts,
   getProduct,
   updateProduct,
   deleteProduct,
@@ -72,6 +73,7 @@ router.post(
   addProduct
 );
 router.get("/list", listProducts);
+router.get("/featured", listFeaturedProducts);
 router.get("/:idOrSlug", getProduct);
 router.patch(
   "/:id",

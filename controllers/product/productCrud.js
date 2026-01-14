@@ -5,8 +5,49 @@ import {
   sanitizeProductContent,
   validateProductContent,
 } from "../../utils/htmlSanitizer.js";
-import { setPermanentPrice, getCurrentPrice } from "../../utils/priceHelpers.js";
+import {
+  setPermanentPrice,
+  getCurrentPrice,
+} from "../../utils/priceHelpers.js";
 import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
+
+const buildProductSummary = async (product) => {
+  const mediaList = product.media || [];
+  const image = mediaList[0]?.url ?? null;
+
+  const variantsWithPrice = await Promise.all(
+    (product.variants || []).map(async (variant) => {
+      const currentPrice = await getCurrentPrice(variant.id);
+      return {
+        id: variant.id,
+        name: variant.name,
+        sku: variant.sku,
+        isActive: variant.isActive,
+        price: currentPrice?.amount ?? null,
+        currentPrice: currentPrice?.amount ?? null,
+        quantity: variant.inventory?.quantity ?? null,
+        safetyStock: variant.inventory?.safetyStock ?? null,
+      };
+    })
+  );
+
+  const defaultVariant =
+    variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
+  const currentPrice = defaultVariant?.price ?? null;
+
+  return {
+    id: product.id,
+    name: product.name,
+    price: currentPrice,
+    currentPrice,
+    description: product.description,
+    image,
+    categoryIds: (product.categories || []).map((c) => c.categoryId),
+    isActive: product.isActive,
+    isFeatured: product.isFeatured,
+    variants: variantsWithPrice,
+  };
+};
 
 // POST /api/products (or /api/product/add)
 export const addProduct = async (req, res) => {
@@ -187,7 +228,9 @@ export const listProducts = async (req, res) => {
         where,
         include: {
           media: { orderBy: { position: "asc" } },
-          variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
+          variants: {
+            include: { prices: { where: { isActive: true } }, inventory: true },
+          },
           categories: true,
         },
         orderBy: { createdAt: "desc" },
@@ -197,50 +240,44 @@ export const listProducts = async (req, res) => {
       prisma.product.count({ where }),
     ]);
 
-    // Simplify output to mimic old food list: id,name,price,description,image,categoryIds + isActive,isFeatured
-    const data = await Promise.all(
-      items.map(async (p) => {
-        const image = p.media?.[0]?.url ?? null;
-        
-        // Get current prices for all variants
-        const variantsWithPrice = await Promise.all(
-          (p.variants || []).map(async (v) => {
-            const currentPrice = await getCurrentPrice(v.id);
-            return {
-              id: v.id,
-              name: v.name,
-              sku: v.sku,
-              isActive: v.isActive,
-              price: currentPrice?.amount ?? null,
-              currentPrice: currentPrice?.amount ?? null,
-              quantity: v.inventory?.quantity ?? null,
-              safetyStock: v.inventory?.safetyStock ?? null,
-            };
-          })
-        );
-        
-        // Product price is the default variant's current price
-        const defaultVariant = variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
-        const currentPrice = defaultVariant?.price ?? null;
-        
-        return {
-          id: p.id,
-          name: p.name,
-          price: currentPrice,
-          currentPrice,
-          description: p.description,
-          image,
-          categoryIds: p.categories.map((c) => c.categoryId),
-          isActive: p.isActive,
-          isFeatured: p.isFeatured,
-          variants: variantsWithPrice,
-        };
-      })
-    );
+    const data = await Promise.all(items.map(buildProductSummary));
 
     return res.json(data);
   } catch (err) {
     console.error("listProducts error:", err);
+    return res.status(500).json({ message: "error" });
+  }
+};
+
+export const listFeaturedProducts = async (req, res) => {
+  try {
+    const includeInactive = String(req.query.includeInactive || "") === "1";
+    const limit = Math.min(Number(req.query.limit) || 12, 200);
+
+    const where = {
+      AND: [
+        { isFeatured: true },
+        includeInactive ? undefined : { isActive: true },
+      ].filter(Boolean),
+    };
+
+    const items = await prisma.product.findMany({
+      where,
+      include: {
+        media: { orderBy: { position: "asc" } },
+        variants: {
+          include: { prices: { where: { isActive: true } }, inventory: true },
+        },
+        categories: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+
+    const data = await Promise.all(items.map(buildProductSummary));
+    return res.json(data);
+  } catch (err) {
+    console.error("listFeaturedProducts error:", err);
     return res.status(500).json({ message: "error" });
   }
 };
@@ -257,14 +294,16 @@ export const getProduct = async (req, res) => {
       where,
       include: {
         media: { orderBy: { position: "asc" } },
-        variants: { include: { prices: { where: { isActive: true } }, inventory: true } },
+        variants: {
+          include: { prices: { where: { isActive: true } }, inventory: true },
+        },
         categories: { include: { category: true } },
       },
     });
     if (!p) return res.status(404).json({ message: "Not found" });
 
     const image = p.media?.[0]?.url ?? null;
-    
+
     // Get current price for each variant
     const variantsWithPrice = await Promise.all(
       (p.variants || []).map(async (v) => {
@@ -281,11 +320,13 @@ export const getProduct = async (req, res) => {
         };
       })
     );
-    
+
     // Product price is the default variant's current price
-    const defaultVariant = variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
+    const defaultVariant =
+      variantsWithPrice.find((v) => v.name === "Default") ||
+      variantsWithPrice[0];
     const productPrice = defaultVariant?.price ?? null;
-    
+
     const data = {
       id: p.id,
       name: p.name,
@@ -387,11 +428,7 @@ export const updateProduct = async (req, res) => {
     const updated = await prisma.product.update({ where: { id }, data });
 
     // Handle price update (simplified approach)
-    if (
-      price !== undefined &&
-      price !== null &&
-      String(price).trim() !== ""
-    ) {
+    if (price !== undefined && price !== null && String(price).trim() !== "") {
       const priceValue = Number(String(price).trim());
       console.log("Processing price update:", priceValue);
 
@@ -424,9 +461,7 @@ export const updateProduct = async (req, res) => {
         }
 
         const currentPrice = await getCurrentPrice(variant.id);
-        const currentAmount = currentPrice
-          ? Number(currentPrice.amount)
-          : null;
+        const currentAmount = currentPrice ? Number(currentPrice.amount) : null;
 
         if (currentAmount !== null && currentAmount === priceValue) {
           console.log("Skipping price update because value is unchanged");
