@@ -18,31 +18,45 @@ const buildProductSummary = async (product) => {
   const variantsWithPrice = await Promise.all(
     (product.variants || []).map(async (variant) => {
       const currentPrice = await getCurrentPrice(variant.id);
+      const normalizedAmount =
+        currentPrice?.amount !== undefined && currentPrice?.amount !== null
+          ? Number(currentPrice.amount)
+          : null;
       return {
         id: variant.id,
         name: variant.name,
         sku: variant.sku,
         isActive: variant.isActive,
-        price: currentPrice?.amount ?? null,
-        currentPrice: currentPrice?.amount ?? null,
+        price: normalizedAmount,
+        currentPrice: normalizedAmount,
         quantity: variant.inventory?.quantity ?? null,
         safetyStock: variant.inventory?.safetyStock ?? null,
       };
-    })
+    }),
   );
 
   const defaultVariant =
     variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
   const currentPrice = defaultVariant?.price ?? null;
 
+  const categoryLinks = product.categories || [];
+  const categoryNames = categoryLinks
+    .map((link) => link.category?.name)
+    .filter(Boolean);
+  const resolvedPrice = currentPrice;
+  const createdAt = product.createdAt ? product.createdAt.toISOString() : null;
+
   return {
     id: product.id,
     name: product.name,
-    price: currentPrice,
-    currentPrice,
+    slug: product.slug,
+    price: resolvedPrice,
+    currentPrice: resolvedPrice,
     description: product.description,
     image,
-    categoryIds: (product.categories || []).map((c) => c.categoryId),
+    createdAt,
+    categoryIds: categoryLinks.map((c) => c.categoryId),
+    categoryNames,
     isActive: product.isActive,
     isFeatured: product.isFeatured,
     variants: variantsWithPrice,
@@ -106,7 +120,7 @@ export const addProduct = async (req, res) => {
           const up = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
               { folder, resource_type: "image" },
-              (err, result) => (err ? reject(err) : resolve(result))
+              (err, result) => (err ? reject(err) : resolve(result)),
             );
             stream.end(f.buffer);
           });
@@ -268,7 +282,9 @@ export const listFeaturedProducts = async (req, res) => {
         variants: {
           include: { prices: { where: { isActive: true } }, inventory: true },
         },
-        categories: true,
+        categories: {
+          include: { category: true },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: limit,
@@ -318,7 +334,7 @@ export const getProduct = async (req, res) => {
           quantity: v.inventory?.quantity ?? null,
           safetyStock: v.inventory?.safetyStock ?? null,
         };
-      })
+      }),
     );
 
     // Product price is the default variant's current price
@@ -399,7 +415,7 @@ export const updateProduct = async (req, res) => {
         if (!validation.isValid) {
           return res.status(400).json({
             message: `Content validation failed: ${validation.errors.join(
-              ", "
+              ", ",
             )}`,
           });
         }
@@ -569,7 +585,7 @@ export const updateProduct = async (req, res) => {
           const uploadResult = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
               { folder, resource_type: "image" },
-              (err, result) => (err ? reject(err) : resolve(result))
+              (err, result) => (err ? reject(err) : resolve(result)),
             );
             stream.end(file.buffer);
           });
