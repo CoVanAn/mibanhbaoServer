@@ -1,12 +1,34 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Helper function to generate JWT
+// Helper function to generate JWT (Access Token - 15 minutes)
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "15m" });
+};
+
+// Helper function to generate and store Refresh Token (30 days)
+const generateRefreshToken = async (userId) => {
+  // Generate random token
+  const token = crypto.randomBytes(40).toString("hex");
+
+  // Set expiration to 30 days from now
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  // Store in database
+  await prisma.refreshToken.create({
+    data: {
+      token,
+      userId,
+      expiresAt,
+    },
+  });
+
+  return token;
 };
 
 // Register user
@@ -75,13 +97,22 @@ const registerUser = async (req, res) => {
       },
     });
 
-    // Generate token
-    const token = generateToken(user.id);
+    // Generate tokens
+    const accessToken = generateToken(user.id);
+    const refreshToken = await generateRefreshToken(user.id);
+
+    // Set refresh token as HttpOnly cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS in production
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
 
     res.status(201).json({
       success: true,
       message: "Đăng ký thành công",
-      token,
+      accessToken,
       user,
     });
   } catch (error) {
@@ -137,8 +168,17 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate token
-    const token = generateToken(user.id);
+    // Generate tokens
+    const accessToken = generateToken(user.id);
+    const refreshToken = await generateRefreshToken(user.id);
+
+    // Set refresh token as HttpOnly cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -146,7 +186,7 @@ const loginUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Đăng nhập thành công",
-      token,
+      accessToken,
       user: userWithoutPassword,
     });
   } catch (error) {
@@ -194,27 +234,65 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
-// Refresh token
+// Refresh token - verify from DB and rotate
 const refreshToken = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { id: true },
-    });
+    // Read refresh token from HttpOnly cookie
+    const refreshToken = req.cookies.refreshToken;
 
-    if (!user) {
-      return res.status(404).json({
+    if (!refreshToken) {
+      return res.status(400).json({
         success: false,
-        message: "Người dùng không tồn tại",
+        message: "Refresh token là bắt buộc",
       });
     }
 
-    // Generate new token
-    const token = generateToken(user.id);
+    // Find refresh token in database
+    const tokenRecord = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+      include: { user: true },
+    });
+
+    // Validate token exists and not expired
+    if (!tokenRecord) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token không hợp lệ",
+      });
+    }
+
+    if (new Date() > tokenRecord.expiresAt) {
+      // Delete expired token
+      await prisma.refreshToken.delete({
+        where: { token: refreshToken },
+      });
+
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token đã hết hạn",
+      });
+    }
+
+    // Token rotation: delete old token and create new one
+    await prisma.refreshToken.delete({
+      where: { token: refreshToken },
+    });
+
+    // Generate new tokens
+    const newAccessToken = generateToken(tokenRecord.userId);
+    const newRefreshToken = await generateRefreshToken(tokenRecord.userId);
+
+    // Set new refresh token as HttpOnly cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
 
     res.status(200).json({
       success: true,
-      token,
+      accessToken: newAccessToken,
     });
   } catch (error) {
     console.error("Refresh token error:", error);
@@ -225,4 +303,36 @@ const refreshToken = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getCurrentUser, refreshToken };
+// Logout - delete refresh token from DB and clear cookie
+const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+      // Delete refresh token from database
+      await prisma.refreshToken.deleteMany({
+        where: { token: refreshToken },
+      });
+    }
+
+    // Clear cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Đăng xuất thành công",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
+export { registerUser, loginUser, getCurrentUser, refreshToken, logout };

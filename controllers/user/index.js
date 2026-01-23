@@ -23,6 +23,7 @@ import {
   loginUser,
   getCurrentUser,
   refreshToken,
+  logout,
 } from "./userAuth.js";
 
 export {
@@ -40,6 +41,7 @@ export {
   loginUser,
   getCurrentUser,
   refreshToken,
+  logout,
 };
 
 export default {

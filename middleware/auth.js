@@ -5,7 +5,7 @@ const authMiddleware = async (req, res, next) => {
   console.log("Method:", req.method);
   console.log("URL:", req.url);
   console.log("Headers:", req.headers);
-  
+
   // Prefer standard Authorization: Bearer <token>, fallback to custom header `token`
   const authHeader = req.headers.authorization || req.headers.Authorization;
   let token = req.headers.token;
@@ -23,9 +23,11 @@ const authMiddleware = async (req, res, next) => {
 
   if (!token) {
     console.log("No token provided - returning 401");
-    return res
-      .status(401)
-      .json({ success: false, error: "Not Authorized. Login again." });
+    return res.status(401).json({
+      success: false,
+      error: "Not Authorized. Login again.",
+      code: "NO_TOKEN",
+    });
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -36,7 +38,21 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     console.log("Token verification failed:", error.message);
-    res.status(401).json({ success: false, error: "Please authenticate" });
+
+    // Distinguish between expired token and other errors
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        error: "Token expired",
+        code: "TOKEN_EXPIRED",
+      });
+    }
+
+    res.status(401).json({
+      success: false,
+      error: "Please authenticate",
+      code: "INVALID_TOKEN",
+    });
   }
 };
 

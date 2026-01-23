@@ -20,6 +20,7 @@ import {
   loginUser,
   getCurrentUser,
   refreshToken,
+  logout,
 } from "../controllers/user/index.js";
 
 const router = express.Router();
@@ -28,7 +29,8 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/me", authMiddleware, getCurrentUser);
-router.post("/refresh-token", authMiddleware, refreshToken);
+router.post("/refresh-token", refreshToken);
+router.post("/logout", logout);
 
 // Setup multer for avatar upload
 const storage = multer.memoryStorage();
