@@ -29,6 +29,19 @@ import {
 } from "../controllers/product/index.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
+import { validate, validateParams } from "../middleware/validate.js";
+import {
+  createProductSchema,
+  updateProductSchema,
+  createVariantSchema,
+  updateVariantSchema,
+  setPriceSchema,
+  updateInventorySchema,
+  addMediaSchema,
+  reorderMediaSchema,
+  productIdSchema,
+  variantIdSchema,
+} from "../schemas/product.schema.js";
 
 const router = express.Router();
 
@@ -70,7 +83,7 @@ router.post(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  addProduct
+  addProduct,
 );
 router.get("/list", listProducts);
 router.get("/featured", listFeaturedProducts);
@@ -80,7 +93,7 @@ router.patch(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  updateProduct
+  updateProduct,
 );
 // Fallbacks for clients without PATCH
 router.put(
@@ -88,26 +101,26 @@ router.put(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  updateProduct
+  updateProduct,
 );
 router.post(
   "/update/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  updateProduct
+  updateProduct,
 );
 router.post(
   "/remove",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  removeProduct
+  removeProduct,
 );
 router.delete(
   "/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  deleteProduct
+  deleteProduct,
 );
 
 // Category links
@@ -115,19 +128,19 @@ router.put(
   "/:id/categories",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  setProductCategories
+  setProductCategories,
 );
 router.post(
   "/:id/categories/:categoryId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  addProductCategory
+  addProductCategory,
 );
 router.delete(
   "/:id/categories/:categoryId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  removeProductCategoryLink
+  removeProductCategoryLink,
 );
 
 // Media
@@ -136,47 +149,54 @@ router.post(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  addProductMedia
+  addProductMedia,
 );
 router.delete(
   "/:id/media/:mediaId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  deleteProductMedia
+  deleteProductMedia,
 );
 router.patch(
   "/:id/media/reorder",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  reorderProductMedia
+  reorderProductMedia,
 );
 router.patch(
   "/:id/media/:mediaId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateProductMedia
+  updateProductMedia,
 );
 
 // Variants
-router.get("/:id/variants", getProductVariants);
+router.get(
+  "/:id/variants",
+  validateParams(productIdSchema),
+  getProductVariants,
+);
 router.get("/:id/variants/:variantId", getVariant);
 router.post(
   "/:id/variants",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  createVariant
+  validateParams(productIdSchema),
+  validate(createVariantSchema),
+  createVariant,
 );
 router.patch(
   "/:id/variants/:variantId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateVariant
+  validate(updateVariantSchema),
+  updateVariant,
 );
 router.delete(
   "/:id/variants/:variantId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  deleteVariant
+  deleteVariant,
 );
 
 // Price - with product ID validation
@@ -184,20 +204,21 @@ router.post(
   "/:id/variants/:variantId/price",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  setVariantPrice
+  validate(setPriceSchema),
+  setVariantPrice,
 );
 router.get("/:id/variants/:variantId/prices", getVariantPricesController);
 router.patch(
   "/:id/variants/:variantId/price/:priceId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateVariantPrice
+  updateVariantPrice,
 );
 router.delete(
   "/:id/variants/:variantId/price/:priceId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  deleteVariantPrice
+  deleteVariantPrice,
 );
 
 // Price - shorthand for existing variants (alternative)
@@ -205,15 +226,22 @@ router.post(
   "/variant/:variantId/price",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  setVariantPrice
+  validateParams(variantIdSchema),
+  validate(setPriceSchema),
+  setVariantPrice,
 );
 router.patch(
   "/variant/:variantId/price",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateVariantPrice
+  validateParams(variantIdSchema),
+  updateVariantPrice,
 );
-router.get("/variant/:variantId/prices", getVariantPricesController);
+router.get(
+  "/variant/:variantId/prices",
+  validateParams(variantIdSchema),
+  getVariantPricesController,
+);
 
 // Inventory
 router.get("/:id/variants/:variantId/inventory", getInventory);
@@ -221,17 +249,24 @@ router.patch(
   "/:id/variants/:variantId/inventory",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateInventory
+  validate(updateInventorySchema),
+  updateInventory,
 );
 
 // Inventory - shorthand
-router.get("/variant/:variantId", getVariant);
-router.get("/variant/:variantId/inventory", getInventory);
+router.get("/variant/:variantId", validateParams(variantIdSchema), getVariant);
+router.get(
+  "/variant/:variantId/inventory",
+  validateParams(variantIdSchema),
+  getInventory,
+);
 router.patch(
   "/variant/:variantId/inventory",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
-  updateInventory
+  validateParams(variantIdSchema),
+  validate(updateInventorySchema),
+  updateInventory,
 );
 
 export default router;

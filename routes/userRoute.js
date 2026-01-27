@@ -1,6 +1,15 @@
 import express from "express";
 import multer from "multer";
 import authMiddleware from "../middleware/auth.js";
+import { validate, validateParams } from "../middleware/validate.js";
+import {
+  registerUserSchema,
+  loginUserSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+  addressSchema,
+  addressIdSchema,
+} from "../schemas/user.schema.js";
 import {
   // Profile
   getUserProfile,
@@ -26,8 +35,8 @@ import {
 const router = express.Router();
 
 // Authentication routes (no auth middleware)
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", validate(registerUserSchema), registerUser);
+router.post("/login", validate(loginUserSchema), loginUser);
 router.get("/me", authMiddleware, getCurrentUser);
 router.post("/refresh-token", refreshToken);
 router.post("/logout", logout);
@@ -48,19 +57,56 @@ const upload = multer({
 
 // Profile routes
 router.get("/profile", authMiddleware, getUserProfile);
-router.patch("/profile", authMiddleware, updateUserProfile);
-router.put("/profile", authMiddleware, updateUserProfile); // Fallback
+router.patch(
+  "/profile",
+  authMiddleware,
+  validate(updateProfileSchema),
+  updateUserProfile,
+);
+router.put(
+  "/profile",
+  authMiddleware,
+  validate(updateProfileSchema),
+  updateUserProfile,
+); // Fallback
 
 // Password routes
-router.post("/change-password", authMiddleware, changePassword);
+router.post(
+  "/change-password",
+  authMiddleware,
+  validate(changePasswordSchema),
+  changePassword,
+);
 
 // Address routes
 router.get("/addresses", authMiddleware, getUserAddresses);
-router.post("/addresses", authMiddleware, addAddress);
-router.get("/addresses/:id", authMiddleware, getAddress);
-router.patch("/addresses/:id", authMiddleware, updateAddress);
-router.put("/addresses/:id", authMiddleware, updateAddress); // Fallback
-router.delete("/addresses/:id", authMiddleware, deleteAddress);
+router.post("/addresses", authMiddleware, validate(addressSchema), addAddress);
+router.get(
+  "/addresses/:id",
+  authMiddleware,
+  validateParams(addressIdSchema),
+  getAddress,
+);
+router.patch(
+  "/addresses/:id",
+  authMiddleware,
+  validateParams(addressIdSchema),
+  validate(addressSchema),
+  updateAddress,
+);
+router.put(
+  "/addresses/:id",
+  authMiddleware,
+  validateParams(addressIdSchema),
+  validate(addressSchema),
+  updateAddress,
+); // Fallback
+router.delete(
+  "/addresses/:id",
+  authMiddleware,
+  validateParams(addressIdSchema),
+  deleteAddress,
+);
 
 // Avatar routes
 router.post("/avatar", authMiddleware, upload.single("avatar"), uploadAvatar);
