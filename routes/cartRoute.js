@@ -1,4 +1,5 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 import {
   getCart,
   mergeCart,
@@ -24,47 +25,76 @@ const cartRouter = express.Router();
 
 // Optional auth middleware - allows both guest and authenticated users
 const optionalAuth = (req, res, next) => {
-  // Try to authenticate, but don't fail if no token
-  if (req.headers.authorization) {
-    return authMiddleware(req, res, next);
+  // Try to authenticate if any auth header is present
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  let token = req.headers.token;
+
+  if (
+    authHeader &&
+    typeof authHeader === "string" &&
+    authHeader.startsWith("Bearer ")
+  ) {
+    token = authHeader.substring(7);
   }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      req.userId = decoded.id;
+      console.log("OptionalAuth: Authenticated user", decoded.id);
+    } catch (error) {
+      // Token invalid/expired - continue as guest
+      console.log(
+        "OptionalAuth: Token invalid, continuing as guest:",
+        error.message,
+      );
+    }
+  }
+
   next();
 };
 
-// Apply guest token middleware to all cart routes
-cartRouter.use(ensureGuestToken);
+// Combined middleware: first try auth, then ensure guest token
+const authThenGuest = (req, res, next) => {
+  // First try to authenticate
+  optionalAuth(req, res, () => {
+    // Then ensure guest token if not authenticated
+    ensureGuestToken(req, res, next);
+  });
+};
 
 // Cart operations (guest + authenticated)
-cartRouter.get("/", optionalAuth, getCart);
+cartRouter.get("/", authThenGuest, getCart);
 cartRouter.post(
   "/items",
-  optionalAuth,
+  authThenGuest,
   validate(addToCartSchema),
   addItemToCart,
 );
 cartRouter.put(
   "/items/:itemId",
-  optionalAuth,
+  authThenGuest,
   validateParams(cartItemIdSchema),
   validate(updateCartItemSchema),
   updateCartItem,
 );
 cartRouter.delete(
   "/items/:itemId",
-  optionalAuth,
+  authThenGuest,
   validateParams(cartItemIdSchema),
   removeCartItem,
 );
-cartRouter.delete("/clear", optionalAuth, clearCart);
+cartRouter.delete("/clear", authThenGuest, clearCart);
 
 // Coupon operations (guest + authenticated)
 cartRouter.post(
   "/coupon",
-  optionalAuth,
+  authThenGuest,
   validate(applyCouponSchema),
   applyCoupon,
 );
-cartRouter.delete("/coupon", optionalAuth, removeCoupon);
+cartRouter.delete("/coupon", authThenGuest, removeCoupon);
 
 // Merge cart (authenticated only)
 cartRouter.post("/merge", authMiddleware, validate(mergeCartSchema), mergeCart);
