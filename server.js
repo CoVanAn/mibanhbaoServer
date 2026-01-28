@@ -19,9 +19,26 @@ const port = process.env.PORT || 4000;
 // middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// CORS - Allow multiple origins (Client + Admin)
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  process.env.ADMIN_URL || "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "token"],
