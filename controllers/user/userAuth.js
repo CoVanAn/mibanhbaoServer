@@ -102,11 +102,13 @@ const registerUser = async (req, res) => {
     const refreshToken = await generateRefreshToken(user.id);
 
     // Set refresh token as HttpOnly cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS in production
-      sameSite: "lax",
+      secure: isProduction, // HTTPS in production
+      sameSite: isProduction ? "strict" : "lax", // strict in production, lax in development
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: "/", // Ensure cookie is sent for all paths
     });
 
     res.status(201).json({
@@ -173,11 +175,13 @@ const loginUser = async (req, res) => {
     const refreshToken = await generateRefreshToken(user.id);
 
     // Set refresh token as HttpOnly cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction, // HTTPS in production
+      sameSite: isProduction ? "strict" : "lax", // strict in production, lax in development
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: "/", // Ensure cookie is sent for all paths
     });
 
     // Remove password from response
@@ -283,11 +287,13 @@ const refreshToken = async (req, res) => {
     const newRefreshToken = await generateRefreshToken(tokenRecord.userId);
 
     // Set new refresh token as HttpOnly cookie
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: "/",
     });
 
     res.status(200).json({

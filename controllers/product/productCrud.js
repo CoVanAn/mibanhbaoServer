@@ -11,29 +11,55 @@ import {
 } from "../../utils/priceHelpers.js";
 import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
 
-const buildProductSummary = async (product) => {
+/**
+ * Get current price from already-loaded prices array
+ * This avoids extra database queries
+ */
+const getCurrentPriceFromArray = (prices) => {
+  if (!prices || prices.length === 0) return null;
+
+  const now = new Date();
+  const activePrices = prices.filter((p) => p.isActive);
+
+  // Find scheduled price (has dates and currently valid)
+  const scheduledPrice = activePrices.find((p) => {
+    const hasDateRange = p.startsAt || p.endsAt;
+    if (!hasDateRange) return false;
+
+    const startsOk = !p.startsAt || new Date(p.startsAt) <= now;
+    const endsOk = !p.endsAt || new Date(p.endsAt) >= now;
+    return startsOk && endsOk;
+  });
+
+  if (scheduledPrice) return scheduledPrice;
+
+  // Fall back to permanent price (no dates)
+  const permanentPrice = activePrices.find((p) => !p.startsAt && !p.endsAt);
+  return permanentPrice || null;
+};
+
+const buildProductSummary = (product) => {
   const mediaList = product.media || [];
   const image = mediaList[0]?.url ?? null;
 
-  const variantsWithPrice = await Promise.all(
-    (product.variants || []).map(async (variant) => {
-      const currentPrice = await getCurrentPrice(variant.id);
-      const normalizedAmount =
-        currentPrice?.amount !== undefined && currentPrice?.amount !== null
-          ? Number(currentPrice.amount)
-          : null;
-      return {
-        id: variant.id,
-        name: variant.name,
-        sku: variant.sku,
-        isActive: variant.isActive,
-        price: normalizedAmount,
-        currentPrice: normalizedAmount,
-        quantity: variant.inventory?.quantity ?? null,
-        safetyStock: variant.inventory?.safetyStock ?? null,
-      };
-    }),
-  );
+  // Use prices already loaded in the query instead of making extra DB calls
+  const variantsWithPrice = (product.variants || []).map((variant) => {
+    const currentPrice = getCurrentPriceFromArray(variant.prices);
+    const normalizedAmount =
+      currentPrice?.amount !== undefined && currentPrice?.amount !== null
+        ? Number(currentPrice.amount)
+        : null;
+    return {
+      id: variant.id,
+      name: variant.name,
+      sku: variant.sku,
+      isActive: variant.isActive,
+      price: normalizedAmount,
+      currentPrice: normalizedAmount,
+      quantity: variant.inventory?.quantity ?? null,
+      safetyStock: variant.inventory?.safetyStock ?? null,
+    };
+  });
 
   const defaultVariant =
     variantsWithPrice.find((v) => v.name === "Default") || variantsWithPrice[0];
@@ -243,9 +269,9 @@ export const listProducts = async (req, res) => {
         include: {
           media: { orderBy: { position: "asc" } },
           variants: {
-            include: { prices: { where: { isActive: true } }, inventory: true },
+            include: { prices: true, inventory: true },
           },
-          categories: true,
+          categories: { include: { category: true } },
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -254,7 +280,7 @@ export const listProducts = async (req, res) => {
       prisma.product.count({ where }),
     ]);
 
-    const data = await Promise.all(items.map(buildProductSummary));
+    const data = items.map(buildProductSummary);
 
     return res.json(data);
   } catch (err) {
@@ -280,7 +306,7 @@ export const listFeaturedProducts = async (req, res) => {
       include: {
         media: { orderBy: { position: "asc" } },
         variants: {
-          include: { prices: { where: { isActive: true } }, inventory: true },
+          include: { prices: true, inventory: true },
         },
         categories: {
           include: { category: true },
@@ -290,7 +316,7 @@ export const listFeaturedProducts = async (req, res) => {
       take: limit,
     });
 
-    const data = await Promise.all(items.map(buildProductSummary));
+    const data = items.map(buildProductSummary);
     return res.json(data);
   } catch (err) {
     console.error("listFeaturedProducts error:", err);
@@ -320,22 +346,24 @@ export const getProduct = async (req, res) => {
 
     const image = p.media?.[0]?.url ?? null;
 
-    // Get current price for each variant
-    const variantsWithPrice = await Promise.all(
-      (p.variants || []).map(async (v) => {
-        const currentPrice = await getCurrentPrice(v.id);
-        return {
-          id: v.id,
-          name: v.name,
-          sku: v.sku,
-          isActive: v.isActive,
-          price: currentPrice?.amount ?? null,
-          currentPrice: currentPrice?.amount ?? null,
-          quantity: v.inventory?.quantity ?? null,
-          safetyStock: v.inventory?.safetyStock ?? null,
-        };
-      }),
-    );
+    // Get current price for each variant using pre-loaded prices
+    const variantsWithPrice = (p.variants || []).map((v) => {
+      const currentPrice = getCurrentPriceFromArray(v.prices);
+      const normalizedAmount =
+        currentPrice?.amount !== undefined && currentPrice?.amount !== null
+          ? Number(currentPrice.amount)
+          : null;
+      return {
+        id: v.id,
+        name: v.name,
+        sku: v.sku,
+        isActive: v.isActive,
+        price: normalizedAmount,
+        currentPrice: normalizedAmount,
+        quantity: v.inventory?.quantity ?? null,
+        safetyStock: v.inventory?.safetyStock ?? null,
+      };
+    });
 
     // Product price is the default variant's current price
     const defaultVariant =

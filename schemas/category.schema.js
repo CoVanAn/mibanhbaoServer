@@ -29,11 +29,16 @@ export const createCategorySchema = z.object({
     .number()
     .int("Parent ID must be an integer")
     .positive("Parent ID must be positive")
+    .nullable()
     .optional(),
   position: z
-    .number()
-    .int("Position must be an integer")
-    .min(0, "Position cannot be negative")
+    .union([z.number(), z.string().transform((val) => parseInt(val, 10) || 0)])
+    .pipe(
+      z
+        .number()
+        .int("Position must be an integer")
+        .min(0, "Position cannot be negative"),
+    )
     .default(0),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -68,9 +73,13 @@ export const updateCategorySchema = z.object({
     .nullable()
     .optional(),
   position: z
-    .number()
-    .int("Position must be an integer")
-    .min(0, "Position cannot be negative")
+    .union([z.number(), z.string().transform((val) => parseInt(val, 10) || 0)])
+    .pipe(
+      z
+        .number()
+        .int("Position must be an integer")
+        .min(0, "Position cannot be negative"),
+    )
     .optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
