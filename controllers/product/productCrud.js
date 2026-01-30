@@ -92,7 +92,15 @@ const buildProductSummary = (product) => {
 // POST /api/products (or /api/product/add)
 export const addProduct = async (req, res) => {
   try {
-    const { name, price, description, content, categoryId } = req.body;
+    const {
+      name,
+      price,
+      description,
+      content,
+      categoryId,
+      quantity,
+      safetyStock,
+    } = req.body;
     if (
       !name ||
       price === undefined ||
@@ -213,8 +221,18 @@ export const addProduct = async (req, res) => {
     // Create permanent price using helper
     await setPermanentPrice(variant.id, priceStr);
 
-    // Auto-create inventory for the default variant
-    await createInventoryForVariant(variant.id, 0, 0);
+    // Auto-create inventory for the default variant with provided quantity
+    const initialQuantity =
+      quantity !== undefined && quantity !== null ? Number(quantity) : 0;
+    const initialSafetyStock =
+      safetyStock !== undefined && safetyStock !== null
+        ? Number(safetyStock)
+        : 0;
+    await createInventoryForVariant(
+      variant.id,
+      initialQuantity,
+      initialSafetyStock,
+    );
 
     // Save medias with positions
     if (uploads.length > 0) {
