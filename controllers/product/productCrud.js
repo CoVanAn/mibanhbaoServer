@@ -299,8 +299,18 @@ export const listProducts = async (req, res) => {
     ]);
 
     const data = items.map(buildProductSummary);
+    const currentPage = Number(page) || 1;
+    const totalPages = Math.ceil(total / take);
 
-    return res.json(data);
+    return res.json({
+      data,
+      pagination: {
+        page: currentPage,
+        limit: take,
+        total,
+        totalPages,
+      },
+    });
   } catch (err) {
     console.error("listProducts error:", err);
     return res.status(500).json({ message: "error" });
