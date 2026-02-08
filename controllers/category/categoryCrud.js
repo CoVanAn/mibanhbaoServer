@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma.js";
-import { uniqueCategorySlug } from "./categoryHelpers.js";
+import { uniqueCategorySlug } from "./helpers.js";
 
 // POST /api/category/add
 export const addCategory = async (req, res) => {

@@ -1,7 +1,22 @@
 import prisma from "../../config/prisma.js";
 
 // Utility functions
-const toSlug = (name) => name.trim().toLowerCase().replace(/\s+/g, "-");
+const toSlug = (name) => {
+  // Convert Vietnamese characters to ASCII
+  const from = "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ";
+  const to = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiioooooooooooooooooouuuuuuuuuuuyyyyyd";
+  
+  let str = name.trim().toLowerCase();
+  for (let i = 0; i < from.length; i++) {
+    str = str.replace(new RegExp(from[i], 'g'), to[i]);
+  }
+  
+  return str
+    .replace(/\s+/g, "-")           // Replace spaces with -
+    .replace(/[^a-z0-9-]/g, "")     // Remove invalid chars
+    .replace(/-+/g, "-")            // Collapse multiple dashes
+    .replace(/^-|-$/g, "");          // Trim dashes from ends
+};
 
 export async function uniqueCategorySlug(base, excludeId) {
   const baseSlug = toSlug(base);

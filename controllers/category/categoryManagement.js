@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma.js";
-import { uniqueCategorySlug, validateNoCycle } from "./categoryHelpers.js";
+import { uniqueCategorySlug, validateNoCycle } from "./helpers.js";
 
 // PATCH /api/category/:id
 export const updateCategory = async (req, res) => {
