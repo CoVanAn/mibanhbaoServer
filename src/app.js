@@ -3,36 +3,37 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "./middleware/googleAuth.js";
-import { connectDB } from "./config/db.js";
 import productRouter from "./routes/productRoute.js";
 import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
-// import orderRouter from "./routes/orderRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import authRouter from "./routes/authRoute.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { notFoundHandler } from "./middleware/notFoundHandler.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 import "dotenv/config";
 
-// app config
+// Create Express app
 const app = express();
-const port = process.env.PORT || 4000;
 
-// middleware
-app.use(express.json());
-app.use(cookieParser());
-
-// CORS - Allow multiple origins (Client + Admin)
+// CORS configuration
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   process.env.ADMIN_URL || "http://localhost:5173",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+// Global middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -45,42 +46,61 @@ app.use(
     exposedHeaders: ["Set-Cookie"],
   }),
 );
+
 app.use(
   session({
-    secret: "your_secret_key",
+    secret: process.env.SESSION_SECRET || "your_secret_key",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
   }),
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Debug middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, req.body);
-  next();
+// Request logging middleware
+app.use(requestLogger);
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 });
 
-// db config
-connectDB();
+// Root endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Mi Banh Bao API",
+    version: "1.0.0",
+    endpoints: {
+      products: "/api/product",
+      users: "/api/user",
+      cart: "/api/cart",
+      categories: "/api/category",
+      auth: "/auth",
+    },
+  });
+});
 
-// api endpoints
+// API routes
 app.use("/api/product", productRouter);
-// app.use("/images", express.static("uploads"));
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
-// app.use("/api/order", orderRouter);
 app.use("/api/category", categoryRouter);
 app.use("/auth", authRouter);
 
-// api routes
-app.get("/", (req, res) => {
-  res.status(200).send("Hello World");
-});
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
 
-// listen
-app.listen(port, () => {
-  console.log(`Server is running on port ${port} ex: http://localhost:${port}`);
-});
+// Global error handler - must be last
+app.use(errorHandler);
 
-// mongodb+srv://covanan:cvan6323@cluster0.bdmttar.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+export default app;

@@ -1,0 +1,120 @@
+/**
+ * HTTP Status Codes
+ */
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  VALIDATION_ERROR: 422,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
+};
+
+/**
+ * Error Codes
+ */
+export const ERROR_CODES = {
+  // Authentication
+  NO_TOKEN: "NO_TOKEN",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+
+  // Authorization
+  FORBIDDEN: "FORBIDDEN",
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+
+  // Validation
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  INVALID_INPUT: "INVALID_INPUT",
+
+  // Resources
+  NOT_FOUND: "NOT_FOUND",
+  ALREADY_EXISTS: "ALREADY_EXISTS",
+
+  // Business Logic
+  OUT_OF_STOCK: "OUT_OF_STOCK",
+  INSUFFICIENT_QUANTITY: "INSUFFICIENT_QUANTITY",
+  INVALID_OPERATION: "INVALID_OPERATION",
+
+  // Server
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  DATABASE_ERROR: "DATABASE_ERROR",
+  EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
+};
+
+/**
+ * User Roles
+ */
+export const USER_ROLES = {
+  ADMIN: "ADMIN",
+  STAFF: "STAFF",
+  CUSTOMER: "CUSTOMER",
+};
+
+/**
+ * Order Status
+ */
+export const ORDER_STATUS = {
+  PENDING: "PENDING",
+  CONFIRMED: "CONFIRMED",
+  PREPARING: "PREPARING",
+  READY: "READY",
+  OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
+  COMPLETED: "COMPLETED",
+  CANCELED: "CANCELED",
+  REFUNDED: "REFUNDED",
+};
+
+/**
+ * Payment Status
+ */
+export const PAYMENT_STATUS = {
+  UNPAID: "UNPAID",
+  AUTHORIZED: "AUTHORIZED",
+  PAID: "PAID",
+  FAILED: "FAILED",
+  REFUNDED: "REFUNDED",
+};
+
+/**
+ * Pagination Defaults
+ */
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 20,
+  MAX_LIMIT: 100,
+};
+
+/**
+ * Cache TTL (in seconds)
+ */
+export const CACHE_TTL = {
+  SHORT: 60, // 1 minute
+  MEDIUM: 300, // 5 minutes
+  LONG: 3600, // 1 hour
+  VERY_LONG: 86400, // 24 hours
+};
+
+/**
+ * File Upload Limits
+ */
+export const UPLOAD_LIMITS = {
+  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+  MAX_FILES: 10,
+  ALLOWED_IMAGE_TYPES: ["image/png", "image/jpeg", "image/jpg", "image/webp"],
+};
+
+/**
+ * Environment
+ */
+export const ENVIRONMENTS = {
+  DEVELOPMENT: "development",
+  PRODUCTION: "production",
+  TEST: "test",
+};

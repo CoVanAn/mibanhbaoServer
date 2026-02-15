@@ -14,7 +14,7 @@ import {
   setProductCategories,
   addProductCategory,
   removeProductCategoryLink,
-} from "./productCategories.js";
+} from "./category.js";
 
 // Media management
 import {
@@ -22,7 +22,7 @@ import {
   deleteProductMedia,
   reorderProductMedia,
   updateProductMedia,
-} from "./productMedia.js";
+} from "./media.js";
 
 // Variant management
 import {
@@ -31,7 +31,7 @@ import {
   deleteVariant,
   getProductVariants,
   getVariant,
-} from "./productVariants.js";
+} from "./variant.js";
 
 // Pricing management
 import {
@@ -39,13 +39,13 @@ import {
   getVariantPricesController,
   updateVariantPrice,
   deleteVariantPrice,
-} from "./productPricing.js";
+} from "./price.js";
 
 // Inventory management
-import { getInventory, updateInventory } from "./productInventory.js";
+import { getInventory, updateInventory } from "./inventory.js";
 
 // Utility functions
-import { slugify, uniqueSlug } from "./helpers.js";
+import { slugify, uniqueSlug } from "../../utils/helpers.js";
 
 // Re-export all functions for named imports
 export {

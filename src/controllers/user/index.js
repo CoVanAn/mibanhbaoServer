@@ -3,7 +3,7 @@ import {
   getUserProfile,
   updateUserProfile,
   changePassword,
-} from "./userProfile.js";
+} from "./profile.js";
 
 // Address management
 import {
@@ -12,10 +12,10 @@ import {
   addAddress,
   updateAddress,
   deleteAddress,
-} from "./userAddress.js";
+} from "./address.js";
 
 // Avatar management
-import { uploadAvatar, deleteAvatar } from "./userAvatar.js";
+import { uploadAvatar, deleteAvatar } from "./avatar.js";
 
 // Authentication
 import {
@@ -24,7 +24,7 @@ import {
   getCurrentUser,
   refreshToken,
   logout,
-} from "./userAuth.js";
+} from "./auth.js";
 
 export {
   getUserProfile,

@@ -1,6 +1,6 @@
 // Import all functions first
 import { addCategory, listCategory, getCategory } from "./categoryCrud.js";
-import { updateCategory, removeCategory } from "./categoryManagement.js";
+import { updateCategory, removeCategory } from "./manager.js";
 import { uniqueCategorySlug, validateNoCycle } from "./helpers.js";
 
 // Re-export all functions
