@@ -28,6 +28,31 @@ export async function getCart(req, res) {
       });
     }
 
+    // Auto-merge guest cart if user is logged in and has a guest token
+    if (userId && guestToken) {
+      console.log(
+        "[getCart] User logged in with guest token, checking for guest cart to merge",
+      );
+
+      // Check if guest cart exists and has items
+      const guestCart = await prisma.cart.findFirst({
+        where: { guestToken },
+        include: { items: true },
+      });
+
+      if (guestCart && guestCart.items.length > 0) {
+        console.log(
+          `[getCart] Found guest cart ${guestCart.id} with ${guestCart.items.length} items, merging...`,
+        );
+        const mergedCart = await mergeGuestCartToUser(userId, guestToken);
+
+        return res.status(200).json({
+          success: true,
+          cart: formatCartResponse(mergedCart),
+        });
+      }
+    }
+
     const cart = await getOrCreateCart(userId, guestToken);
 
     res.status(200).json({

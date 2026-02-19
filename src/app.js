@@ -8,6 +8,7 @@ import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import authRouter from "./routes/authRoute.js";
+import orderRouter from "./routes/orderRoute.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
@@ -85,6 +86,7 @@ app.get("/", (req, res) => {
       users: "/api/user",
       cart: "/api/cart",
       categories: "/api/category",
+      orders: "/api/order",
       auth: "/auth",
     },
   });
@@ -95,6 +97,7 @@ app.use("/api/product", productRouter);
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/category", categoryRouter);
+app.use("/api/order", orderRouter);
 app.use("/auth", authRouter);
 
 // 404 handler - must be after all routes
