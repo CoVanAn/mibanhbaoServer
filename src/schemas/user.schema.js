@@ -85,7 +85,7 @@ export const changePasswordSchema = z.object({
  * PATCH /api/user/addresses/:id
  */
 export const addressSchema = z.object({
-  recipientName: z
+  name: z
     .string({ required_error: "Recipient name is required" })
     .trim()
     .min(2, "Recipient name must be at least 2 characters")
@@ -94,23 +94,24 @@ export const addressSchema = z.object({
     .string({ required_error: "Phone number is required" })
     .trim()
     .regex(/^[0-9]{10,11}$/, "Phone number must be 10-11 digits"),
-  street: z
-    .string({ required_error: "Street address is required" })
+  company: z.string().trim().optional().nullable(),
+  addressLine: z
+    .string({ required_error: "Address is required" })
     .trim()
-    .min(5, "Street address must be at least 5 characters")
-    .max(200, "Street address cannot exceed 200 characters"),
-  ward: z.string().trim().optional(),
+    .min(5, "Address must be at least 5 characters")
+    .max(200, "Address cannot exceed 200 characters"),
+  ward: z
+    .string({ required_error: "Ward is required" })
+    .trim()
+    .min(1, "Ward cannot be empty"),
   district: z
     .string({ required_error: "District is required" })
     .trim()
     .min(1, "District cannot be empty"),
-  city: z
-    .string({ required_error: "City is required" })
+  province: z
+    .string({ required_error: "Province is required" })
     .trim()
-    .min(1, "City cannot be empty"),
-  country: z.string().trim().default("Vietnam"),
-  postalCode: z.string().trim().optional(),
-  isDefault: z.boolean().default(false),
+    .min(1, "Province cannot be empty"),
 });
 
 /**
