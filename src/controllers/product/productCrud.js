@@ -79,11 +79,24 @@ export const listFeaturedProducts = async (req, res, next) => {
     const limit = Math.min(Number(req.query.limit) || 12, 200);
 
     // Call service to get featured products
-    const items = await productService.getFeaturedProducts(limit, includeInactive);
+    const items = await productService.getFeaturedProducts(
+      limit,
+      includeInactive,
+    );
 
     // Format products using helper
     const data = items.map(buildProductSummary);
-    return res.json(data);
+
+    // Return consistent format with pagination info
+    return res.json({
+      data,
+      pagination: {
+        page: 1,
+        limit: data.length,
+        total: data.length,
+        totalPages: 1,
+      },
+    });
   } catch (error) {
     next(error);
   }
