@@ -1,0 +1,348 @@
+nohup: ignoring input
+Connect with Postgre in Supabase.com
+✅ Database connected successfully
+
+🚀 Server running on http://localhost:4000
+📚 API documentation: http://localhost:4000/
+🏥 Health check: http://localhost:4000/health
+🌍 Environment: development
+➡️  GET /api/cart
+=== GET OR CREATE CART DEBUG ===
+userId: null
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Finding cart with where clause: {
+  guestToken: 'guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325'
+}
+➡️  GET /api/user/profile
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /profile
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDgzOTY3LCJleHAiOjE3NzE0ODQ4Njd9.n5O4yb5ixM-JsCvE2V4e5d_Bh6pCtQNscEfaOYg0Pfk; refreshToken=321e1b38c231ea5b2ea02c13c2dd159192d046f862377b441c3662a142130701013aa6f35454a4e5',
+  'if-none-match': 'W/"123-vkaa3zTfSc3Mqvkx70lHYUqi4J0"'
+}
+Token found: false
+Token value: undefined...
+No token provided - returning 401
+🔴 GET /profile - 401 (5ms)
+➡️  GET /api/user/addresses
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /addresses
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDgzOTY3LCJleHAiOjE3NzE0ODQ4Njd9.n5O4yb5ixM-JsCvE2V4e5d_Bh6pCtQNscEfaOYg0Pfk; refreshToken=321e1b38c231ea5b2ea02c13c2dd159192d046f862377b441c3662a142130701013aa6f35454a4e5',
+  'if-none-match': 'W/"261-q4RsWo8oGdaSrCspNfHdszG8olc"'
+}
+Token found: false
+Token value: undefined...
+No token provided - returning 401
+🔴 GET /addresses - 401 (2ms)
+➡️  POST /api/user/refresh-token
+➡️  GET /api/user/profile
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /profile
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDgzOTY3LCJleHAiOjE3NzE0ODQ4Njd9.n5O4yb5ixM-JsCvE2V4e5d_Bh6pCtQNscEfaOYg0Pfk; refreshToken=321e1b38c231ea5b2ea02c13c2dd159192d046f862377b441c3662a142130701013aa6f35454a4e5',
+  'if-none-match': 'W/"123-vkaa3zTfSc3Mqvkx70lHYUqi4J0"'
+}
+Token found: false
+Token value: undefined...
+No token provided - returning 401
+🔴 GET /profile - 401 (1ms)
+➡️  GET /api/user/addresses
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /addresses
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDgzOTY3LCJleHAiOjE3NzE0ODQ4Njd9.n5O4yb5ixM-JsCvE2V4e5d_Bh6pCtQNscEfaOYg0Pfk; refreshToken=321e1b38c231ea5b2ea02c13c2dd159192d046f862377b441c3662a142130701013aa6f35454a4e5',
+  'if-none-match': 'W/"261-q4RsWo8oGdaSrCspNfHdszG8olc"'
+}
+Token found: false
+Token value: undefined...
+No token provided - returning 401
+🔴 GET /addresses - 401 (1ms)
+Found cart: ID 19 with 0 items
+✅ GET / - 200 (1036ms)
+✅ POST /refresh-token - 200 (1310ms)
+➡️  GET /api/cart
+OptionalAuth: Authenticated user 1
+[getCart] User logged in with guest token, checking for guest cart to merge
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 2 items
+✅ GET / - 200 (856ms)
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+✅ GET /list - 200 (427ms)
+➡️  GET /api/product/list
+✅ GET /featured - 200 (940ms)
+✅ GET /list - 304 (703ms)
+➡️  GET /api/product/list
+➡️  GET /api/category/list
+✅ GET /list - 304 (89ms)
+✅ GET /list - 304 (611ms)
+➡️  GET /api/product/bnh-bao-socola
+➡️  GET /api/product/bnh-bao-socola
+✅ GET /bnh-bao-socola - 200 (635ms)
+➡️  GET /api/product/list
+✅ GET /bnh-bao-socola - 200 (615ms)
+✅ GET /list - 304 (630ms)
+➡️  POST /api/cart/items
+OptionalAuth: Authenticated user 1
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 2 items
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 2 items
+✅ POST /items - 200 (1853ms)
+➡️  DELETE /api/cart/items/28
+OptionalAuth: Authenticated user 1
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 2 items
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 1 items
+✅ DELETE /items/28 - 200 (1217ms)
+➡️  GET /api/user/profile
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /profile
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ; refreshToken=1da1567418c2bc3ba8d013267d0274c0432fdf513350576f56cee44815f10f2e5d84d5aa8a69d8eb',
+  'if-none-match': 'W/"123-vkaa3zTfSc3Mqvkx70lHYUqi4J0"'
+}
+Token found: true
+Token value: eyJhbGciOiJIUzI1NiIs...
+Auth successful for user: 1
+➡️  GET /api/user/addresses
+=== AUTH MIDDLEWARE DEBUG ===
+Method: GET
+URL: /addresses
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"Android"',
+  authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ; refreshToken=1da1567418c2bc3ba8d013267d0274c0432fdf513350576f56cee44815f10f2e5d84d5aa8a69d8eb',
+  'if-none-match': 'W/"261-q4RsWo8oGdaSrCspNfHdszG8olc"'
+}
+Token found: true
+Token value: eyJhbGciOiJIUzI1NiIs...
+Auth successful for user: 1
+✅ GET /profile - 304 (89ms)
+✅ GET /addresses - 304 (153ms)
+➡️  POST /api/order/create
+=== OPTIONAL AUTH DEBUG ===
+Headers: {
+  host: 'localhost:4000',
+  connection: 'keep-alive',
+  'content-length': '35',
+  'sec-ch-ua-platform': '"Android"',
+  authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ',
+  'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
+  accept: 'application/json, text/plain, */*',
+  'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+  'content-type': 'application/json',
+  'sec-ch-ua-mobile': '?1',
+  origin: 'http://localhost:3000',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
+  referer: 'http://localhost:3000/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7,fr-FR;q=0.6,fr;q=0.5',
+  cookie: 'guestToken=guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325; connect.sid=s%3Ag8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ; refreshToken=1da1567418c2bc3ba8d013267d0274c0432fdf513350576f56cee44815f10f2e5d84d5aa8a69d8eb'
+}
+Authorization header: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ
+Token header: undefined
+Extracted token from Bearer: eyJhbGciOiJIUzI1NiIs...
+Token verified, user: 1
+=== CREATE ORDER DEBUG ===
+User from req.user: { id: 1, iat: 1771484166, exp: 1771485066 }
+User ID: 1
+Guest Token: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+All cookies: {
+  guestToken: 'guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325',
+  'connect.sid': 's:g8jKX6I1rivQDxyesFmVEekpuLH28RUt.k6JQxbMNPcOdN6Zi77VOGnJsF1MacoLieW6ARC6eAKw',
+  accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ',
+  refreshToken: '1da1567418c2bc3ba8d013267d0274c0432fdf513350576f56cee44815f10f2e5d84d5aa8a69d8eb'
+}
+Authorization header: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcxNDg0MTY2LCJleHAiOjE3NzE0ODUwNjZ9.jbJpVXwJeM1lqN3MHgm53g9eXkWtjvqaVL4xecixtyQ
+Request body: { method: 'DELIVERY', addressId: 3 }
+⚠️ BOTH userId and guestToken present - merge should trigger
+Guest cart check result: {
+  id: 19,
+  itemCount: 0,
+  guestToken: 'guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325'
+}
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 1 items
+Cart found: { id: 8, itemsCount: 1, hasUserId: true, hasGuestToken: false }
+✅ POST /create - 201 (2872ms)
+➡️  GET /api/cart
+OptionalAuth: Authenticated user 1
+[getCart] User logged in with guest token, checking for guest cart to merge
+=== GET OR CREATE CART DEBUG ===
+userId: 1
+guestToken: guest_db8ab907561ef51d7f727c9165c88b3baf04a521492d5e4bc5ed87e7fdcd6325
+Both userId and guestToken present - checking for merge
+No guest cart to merge, proceeding with user cart
+Finding cart with where clause: { userId: 1 }
+Found cart: ID 8 with 0 items
+✅ GET / - 200 (302ms)
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+✅ GET /list - 200 (456ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (624ms)
+✅ GET /featured - 200 (1153ms)
+➡️  POST /api/user/refresh-token
+✅ POST /refresh-token - 200 (766ms)
+➡️  GET /api/product/list
+➡️  GET /api/category/list
+✅ GET /list - 304 (86ms)
+✅ GET /list - 200 (681ms)
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+✅ GET /list - 304 (148ms)
+➡️  GET /api/product/list
+✅ GET /featured - 304 (449ms)
+✅ GET /list - 304 (341ms)
+➡️  GET /api/product/list
+✅ GET /list - 200 (747ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (595ms)
+➡️  GET /api/product/list
+✅ GET /list - 200 (597ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (101ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (512ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (473ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (702ms)
+➡️  GET /api/product/list
+✅ GET /list - 304 (597ms)
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+➡️  GET /api/category/list
+➡️  GET /api/product/featured
+✅ GET /list - 200 (157ms)
+➡️  GET /api/product/list
+✅ GET /featured - 200 (848ms)
+✅ GET /list - 304 (706ms)
