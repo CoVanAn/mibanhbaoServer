@@ -470,7 +470,7 @@ export async function updateOrderNote(req, res) {
     if (customerNote !== undefined) {
       updateData.customerNote = customerNote;
     }
-    if (internalNote !== undefined && isAdmin) {
+    if (internalNote !== undefined) {
       updateData.internalNote = internalNote;
     }
 
