@@ -148,12 +148,46 @@ export async function createOrder(req, res) {
 
       // Create coupon redemption if coupon was used
       if (cart.couponId && coupon) {
+        // Kiểm tra perUserLimit ngay trong transaction để tránh TOCTOU
+        if (coupon.perUserLimit && userId) {
+          const userActiveRedemptions = await tx.couponRedemption.count({
+            where: {
+              couponId: coupon.id,
+              userId,
+              status: "ACTIVE",
+            },
+          });
+          if (userActiveRedemptions >= coupon.perUserLimit) {
+            throw new Error(
+              "You have reached the redemption limit for this coupon",
+            );
+          }
+        }
+
+        // Atomic check-and-increment usedCount:
+        // Dùng raw SQL để đảm bảo CHECK + UPDATE là 1 statement duy nhất,
+        // tránh race condition dù có nhiều request đồng thời.
+        const incrementResult = await tx.$executeRaw`
+          UPDATE "Coupon"
+          SET "usedCount" = "usedCount" + 1
+          WHERE id = ${cart.couponId}
+            AND "isActive" = true
+            AND ("maxRedemptions" IS NULL OR "usedCount" < "maxRedemptions")
+        `;
+
+        if (incrementResult === 0) {
+          throw new Error(
+            "Coupon is no longer available or has reached its redemption limit",
+          );
+        }
+
         await tx.couponRedemption.create({
           data: {
             couponId: cart.couponId,
             userId: userId || null,
             orderId: newOrder.id,
             discountApplied: totals.discount,
+            status: "ACTIVE",
           },
         });
       }

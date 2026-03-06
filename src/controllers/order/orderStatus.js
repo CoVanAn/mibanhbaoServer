@@ -101,6 +101,19 @@ export async function updateOrderStatus(req, res) {
       // Release inventory if order is canceled
       if (status === "CANCELED") {
         await releaseInventory(order.items, tx);
+
+        // Hoàn quota coupon: đánh dấu redemption là RELEASED và giảm usedCount
+        if (updated.couponId) {
+          await tx.couponRedemption.updateMany({
+            where: { orderId: updated.id, status: "ACTIVE" },
+            data: { status: "RELEASED" },
+          });
+          await tx.$executeRaw`
+            UPDATE "Coupon"
+            SET "usedCount" = GREATEST("usedCount" - 1, 0)
+            WHERE id = ${updated.couponId}
+          `;
+        }
       }
 
       // Update payment status if order is completed
@@ -228,6 +241,19 @@ export async function cancelOrder(req, res) {
 
       // Release inventory
       await releaseInventory(order.items, tx);
+
+      // Hoàn quota coupon: đánh dấu redemption là RELEASED và giảm usedCount
+      if (order.couponId) {
+        await tx.couponRedemption.updateMany({
+          where: { orderId: updated.id, status: "ACTIVE" },
+          data: { status: "RELEASED" },
+        });
+        await tx.$executeRaw`
+          UPDATE "Coupon"
+          SET "usedCount" = GREATEST("usedCount" - 1, 0)
+          WHERE id = ${order.couponId}
+        `;
+      }
 
       // Update payment status
       await tx.payment.updateMany({

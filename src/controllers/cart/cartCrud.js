@@ -3,6 +3,7 @@ import {
   getOrCreateCart,
   formatCartResponse,
   mergeGuestCartToUser,
+  calculateCartTotals,
 } from "./cartHelpers.js";
 
 /**
@@ -131,12 +132,9 @@ export async function applyCoupon(req, res) {
     // Get cart
     const cart = await getOrCreateCart(userId, guestToken);
 
-    // Find coupon
+    // Find coupon — chỉ lấy scalar fields, không include redemptions array
     const coupon = await prisma.coupon.findUnique({
       where: { code: couponCode },
-      include: {
-        redemptions: true,
-      },
     });
 
     if (!coupon) {
@@ -169,11 +167,8 @@ export async function applyCoupon(req, res) {
       });
     }
 
-    // Check redemption limits (based on actual order redemptions)
-    if (
-      coupon.maxRedemptions &&
-      coupon.redemptions.length >= coupon.maxRedemptions
-    ) {
+    // Check redemption limits — dùng usedCount thay vì load toàn bộ redemptions array
+    if (coupon.maxRedemptions && coupon.usedCount >= coupon.maxRedemptions) {
       return res.status(400).json({
         success: false,
         message: "Coupon redemption limit reached",
@@ -181,11 +176,13 @@ export async function applyCoupon(req, res) {
     }
 
     // Check per-user limit (only for authenticated users)
+    // NOTE: kiểm tra best-effort ở đây; lock thực sự diễn ra trong createOrder
     if (userId && coupon.perUserLimit) {
       const userRedemptions = await prisma.couponRedemption.count({
         where: {
           couponId: coupon.id,
           userId: userId,
+          status: "ACTIVE",
         },
       });
 
@@ -198,7 +195,7 @@ export async function applyCoupon(req, res) {
     }
 
     // Check minimum subtotal
-    const totals = require("./cartHelpers.js").calculateCartTotals(cart.items);
+    const totals = calculateCartTotals(cart.items);
     if (coupon.minSubtotal && totals.subtotal < coupon.minSubtotal) {
       return res.status(400).json({
         success: false,

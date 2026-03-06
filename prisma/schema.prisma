@@ -5,8 +5,9 @@ generator client {
 // Removed DBML generator to avoid generate errors after uninstalling prisma-dbml-generator
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 /********************
@@ -45,6 +46,11 @@ enum PaymentStatus {
 enum PromotionType {
   PERCENT
   FIXED
+}
+
+enum CouponRedemptionStatus {
+  ACTIVE
+  RELEASED
 }
 
 /********************
@@ -306,6 +312,7 @@ model Coupon {
   minSubtotal      Int?
   maxRedemptions   Int?
   perUserLimit     Int?
+  usedCount        Int                 @default(0)
   isActive         Boolean             @default(true)
 
   redemptions      CouponRedemption[]
@@ -314,12 +321,13 @@ model Coupon {
 }
 
 model CouponRedemption {
-  id              Int       @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   couponId        Int
   userId          Int?
   orderId         Int
-  redeemedAt      DateTime  @default(now())
-  discountApplied Int       // VND
+  redeemedAt      DateTime               @default(now())
+  discountApplied Int                    // VND
+  status          CouponRedemptionStatus @default(ACTIVE)
 
   coupon          Coupon    @relation(fields: [couponId], references: [id], onDelete: Cascade)
   user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -327,6 +335,7 @@ model CouponRedemption {
 
   @@unique([orderId])
   @@index([couponId, userId])
+  @@index([couponId, status])
 }
 
 /********************

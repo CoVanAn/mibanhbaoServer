@@ -18,6 +18,8 @@ export * from "./category.schema.js";
 // Order schemas
 export * from "./order.schema.js";
 
+// Promotion & Coupon schemas
+export * from "./promotion.schema.js";
 // Re-export for convenience
 import * as cartSchemas from "./cart.schema.js";
 import * as userSchemas from "./user.schema.js";
