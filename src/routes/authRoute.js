@@ -8,8 +8,10 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 // Helper function to generate JWT (Access Token - 15 minutes)
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "15m" });
+const generateToken = (userId, role) => {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
 };
 
 // Helper function to generate and store Refresh Token (30 days)
@@ -44,7 +46,7 @@ router.get(
       const user = req.user;
 
       // Generate both access token and refresh token
-      const accessToken = generateToken(user.id);
+      const accessToken = generateToken(user.id, user.role);
       const refreshToken = await generateRefreshToken(user.id);
 
       // Redirect to Next.js API route with tokens as query params

@@ -492,7 +492,7 @@ export async function updateOrderNote(req, res) {
     }
 
     // Check authorization
-    if (!isAdmin && order.userId !== userId) {
+    if (!isAdmin) {
       return res.status(403).json({
         success: false,
         message: "Access denied",

@@ -1,6 +1,6 @@
 import prisma from "../../config/prisma.js";
 import { getOrCreateCart } from "../cart/cartHelpers.js";
-import { validateCoupon } from "../../utils/promotionHelpers.js";
+import { validateCoupon } from "../../utils/couponHelpers.js";
 
 /**
  * Compute cart subtotal from cart items.

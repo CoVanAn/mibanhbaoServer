@@ -24,7 +24,7 @@ import {
   validateCouponSchema,
   applyCouponSchema,
   couponFilterSchema,
-} from "../schemas/promotion.schema.js";
+} from "../schemas/coupon.schema.js";
 import jwt from "jsonwebtoken";
 
 const couponRouter = express.Router();

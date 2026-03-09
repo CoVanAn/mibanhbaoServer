@@ -6,8 +6,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Helper function to generate JWT (Access Token - 15 minutes)
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "15m" });
+const generateToken = (userId, role) => {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
 };
 
 // Helper function to generate and store Refresh Token (30 days)
@@ -98,7 +100,7 @@ const registerUser = async (req, res) => {
     });
 
     // Generate tokens
-    const accessToken = generateToken(user.id);
+    const accessToken = generateToken(user.id, user.role);
     const refreshToken = await generateRefreshToken(user.id);
 
     // Set refresh token as HttpOnly cookie
@@ -171,17 +173,19 @@ const loginUser = async (req, res) => {
     }
 
     // Generate tokens
-    const accessToken = generateToken(user.id);
+    const accessToken = generateToken(user.id, user.role);
     const refreshToken = await generateRefreshToken(user.id);
 
-    // Set refresh token as HttpOnly cookie
+    // Use separate cookie name for Admin vs Client to avoid shared-cookie collision on localhost
+    const isAdminClient = req.headers["x-client-type"] === "admin";
+    const cookieName = isAdminClient ? "adminRefreshToken" : "refreshToken";
     const isProduction = process.env.NODE_ENV === "production";
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie(cookieName, refreshToken, {
       httpOnly: true,
-      secure: isProduction, // HTTPS in production
-      sameSite: isProduction ? "strict" : "lax", // strict in production, lax in development
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      path: "/", // Ensure cookie is sent for all paths
+      path: "/",
     });
 
     // Remove password from response
@@ -241,8 +245,10 @@ const getCurrentUser = async (req, res) => {
 // Refresh token - verify from DB and rotate
 const refreshToken = async (req, res) => {
   try {
-    // Read refresh token from HttpOnly cookie
-    const refreshToken = req.cookies.refreshToken;
+    // Use separate cookie name for Admin vs Client to avoid shared-cookie collision on localhost
+    const isAdminClient = req.headers["x-client-type"] === "admin";
+    const cookieName = isAdminClient ? "adminRefreshToken" : "refreshToken";
+    const refreshToken = req.cookies[cookieName];
 
     if (!refreshToken) {
       return res.status(400).json({
@@ -283,12 +289,15 @@ const refreshToken = async (req, res) => {
     });
 
     // Generate new tokens
-    const newAccessToken = generateToken(tokenRecord.userId);
+    const newAccessToken = generateToken(
+      tokenRecord.userId,
+      tokenRecord.user?.role,
+    );
     const newRefreshToken = await generateRefreshToken(tokenRecord.userId);
 
-    // Set new refresh token as HttpOnly cookie
+    // Set new refresh token as HttpOnly cookie (same cookie name as used on login)
     const isProduction = process.env.NODE_ENV === "production";
-    res.cookie("refreshToken", newRefreshToken, {
+    res.cookie(cookieName, newRefreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "strict" : "lax",
@@ -312,7 +321,9 @@ const refreshToken = async (req, res) => {
 // Logout - delete refresh token from DB and clear cookie
 const logout = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const isAdminClient = req.headers["x-client-type"] === "admin";
+    const cookieName = isAdminClient ? "adminRefreshToken" : "refreshToken";
+    const refreshToken = req.cookies[cookieName];
 
     if (refreshToken) {
       // Delete refresh token from database
@@ -322,7 +333,7 @@ const logout = async (req, res) => {
     }
 
     // Clear cookie
-    res.clearCookie("refreshToken", {
+    res.clearCookie(cookieName, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

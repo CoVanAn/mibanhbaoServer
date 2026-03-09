@@ -9,7 +9,6 @@ import cartRouter from "./routes/cartRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import authRouter from "./routes/authRoute.js";
 import orderRouter from "./routes/orderRoute.js";
-import promotionRouter from "./routes/promotionRoute.js";
 import couponRouter from "./routes/couponRoute.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
@@ -45,7 +44,7 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "token"],
+    allowedHeaders: ["Content-Type", "Authorization", "token", "x-client-type"],
     exposedHeaders: ["Set-Cookie"],
   }),
 );
@@ -89,7 +88,6 @@ app.get("/", (req, res) => {
       cart: "/api/cart",
       categories: "/api/category",
       orders: "/api/order",
-      promotions: "/api/promotion",
       coupons: "/api/coupon",
       auth: "/auth",
     },
@@ -102,7 +100,6 @@ app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/order", orderRouter);
-app.use("/api/promotion", promotionRouter);
 app.use("/api/coupon", couponRouter);
 app.use("/auth", authRouter);
 
