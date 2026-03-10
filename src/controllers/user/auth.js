@@ -84,6 +84,7 @@ const registerUser = async (req, res) => {
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,
+        hasPassword: true,
         name: name.trim(),
         phone: phone || null,
         role: "CUSTOMER", // Default role

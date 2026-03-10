@@ -13,10 +13,10 @@ export const getUserProfile = async (req, res) => {
         name: true,
         email: true,
         phone: true,
-        // dateOfBirth: true,
         avatar: true,
         role: true,
         isActive: true,
+        hasPassword: true,
         createdAt: true,
       },
     });
@@ -24,13 +24,15 @@ export const getUserProfile = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Người dùng không tồn tại" });
     }
 
     res.json({ success: true, user });
   } catch (error) {
     console.error("getUserProfile error:", error);
-    res.status(500).json({ success: false, message: "Failed to get profile" });
+    res
+      .status(500)
+      .json({ success: false, message: "Lỗi khi lấy thông tin người dùng" });
   }
 };
 
@@ -52,7 +54,7 @@ export const updateUserProfile = async (req, res) => {
       if (existingUser) {
         return res
           .status(400)
-          .json({ success: false, message: "Email already in use" });
+          .json({ success: false, message: "Email đã được sử dụng" });
       }
     }
 
@@ -61,14 +63,11 @@ export const updateUserProfile = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = phone;
-    // if (dateOfBirth !== undefined) {
-    //   updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
-    // }
 
     if (Object.keys(updateData).length === 0) {
       return res
         .status(400)
-        .json({ success: false, message: "No fields to update" });
+        .json({ success: false, message: "Không có trường nào để cập nhật" });
     }
 
     const updatedUser = await prisma.user.update({
@@ -79,7 +78,6 @@ export const updateUserProfile = async (req, res) => {
         name: true,
         email: true,
         phone: true,
-        // dateOfBirth: true,
         avatar: true,
         role: true,
         isActive: true,
@@ -91,7 +89,10 @@ export const updateUserProfile = async (req, res) => {
     console.error("updateUserProfile error:", error);
     res
       .status(500)
-      .json({ success: false, message: "Failed to update profile" });
+      .json({
+        success: false,
+        message: "Lỗi khi cập nhật thông tin người dùng",
+      });
   }
 };
 
@@ -101,17 +102,17 @@ export const changePassword = async (req, res) => {
     const userId = req.userId;
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (!newPassword) {
       return res.status(400).json({
         success: false,
-        message: "Current password and new password are required",
+        message: "Mật khẩu mới là bắt buộc",
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "New password must be at least 6 characters",
+        message: "Mật khẩu mới phải có ít nhất 6 ký tự",
       });
     }
 
@@ -123,34 +124,40 @@ export const changePassword = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Người dùng không tồn tại" });
     }
 
-    // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password
-    );
-    if (!isCurrentPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Current password is incorrect" });
+    // If user has a password set, verify the current password
+    if (user.hasPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Mật khẩu hiện tại là bắt buộc",
+        });
+      }
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isCurrentPasswordValid) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Mật khẩu hiện tại không đúng" });
+      }
     }
 
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
+    // Update password and mark hasPassword as true
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedNewPassword },
+      data: { password: hashedNewPassword, hasPassword: true },
     });
 
-    res.json({ success: true, message: "Password changed successfully" });
+    res.json({ success: true, message: "Mật khẩu đã được đổi thành công" });
   } catch (error) {
     console.error("changePassword error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to change password" });
+    res.status(500).json({ success: false, message: "Lỗi khi đổi mật khẩu" });
   }
 };
