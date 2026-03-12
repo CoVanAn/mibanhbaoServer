@@ -313,7 +313,7 @@ export async function getOrderById(req, res) {
 export async function getUserOrders(req, res) {
   try {
     const userId = req.user?.id;
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 10, status } = req.query;
 
     if (!userId) {
       return res.status(401).json({
@@ -380,7 +380,7 @@ export async function getAllOrders(req, res) {
   try {
     const {
       page = 1,
-      limit = 20,
+      limit = 10,
       status,
       method,
       userId,
@@ -390,6 +390,8 @@ export async function getAllOrders(req, res) {
     } = req.query;
 
     const skip = (page - 1) * limit;
+
+    const trimmedSearch = String(search).trim();
 
     const where = {
       ...(status && { status }),
@@ -404,13 +406,13 @@ export async function getAllOrders(req, res) {
         }),
       ...(search && {
         OR: [
-          { code: { contains: search, mode: "insensitive" } },
+          { code: { contains: trimmedSearch, mode: "insensitive" } },
           {
             user: {
               OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { email: { contains: search, mode: "insensitive" } },
-                { phone: { contains: search, mode: "insensitive" } },
+                { name: { contains: trimmedSearch, mode: "insensitive" } },
+                { email: { contains: trimmedSearch, mode: "insensitive" } },
+                { phone: { contains: trimmedSearch, mode: "insensitive" } },
               ],
             },
           },

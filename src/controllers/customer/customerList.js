@@ -26,11 +26,13 @@ export async function getCustomerList(req, res) {
       where.isActive = false;
     }
 
-    if (search) {
+    const trimmedSearch = search ? search.trim() : null;
+
+    if (trimmedSearch) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search, mode: "insensitive" } },
+        { name: { contains: trimmedSearch, mode: "insensitive" } },
+        { email: { contains: trimmedSearch, mode: "insensitive" } },
+        { phone: { contains: trimmedSearch, mode: "insensitive" } },
       ];
     }
 

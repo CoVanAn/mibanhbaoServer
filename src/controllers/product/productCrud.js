@@ -51,7 +51,7 @@ export const listProducts = async (req, res, next) => {
     const result = await productService.getProducts({
       page: Number(page),
       limit: take,
-      search: search ? String(search) : "",
+      search: search ? search.trim() : "",
       categoryId: categoryId ? Number(categoryId) : null,
       isActive,
     });
