@@ -11,6 +11,7 @@ import authRouter from "./routes/authRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import couponRouter from "./routes/couponRoute.js";
 import customerRouter from "./routes/customerRoute.js";
+import employeeRouter from "./routes/employeeRoute.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
@@ -104,6 +105,7 @@ app.use("/api/order", orderRouter);
 app.use("/api/coupon", couponRouter);
 app.use("/auth", authRouter);
 app.use("/", customerRouter);
+app.use("/", employeeRouter);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
