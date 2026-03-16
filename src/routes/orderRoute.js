@@ -86,7 +86,7 @@ orderRouter.post(
 // Get user's orders
 orderRouter.get("/my", authMiddleware, getUserOrders);
 
-// Cancel order
+// Cancel order (customer cancels own order OR admin cancels any order)
 orderRouter.post(
   "/:id/cancel",
   authMiddleware,

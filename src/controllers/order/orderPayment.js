@@ -1,4 +1,16 @@
-import prisma from "../../config/prisma.js";
+import orderService from "../../services/order.service.js";
+
+const handleError = (res, error) => {
+  if (error.isOperational) {
+    return res
+      .status(error.statusCode)
+      .json({ success: false, message: error.message, errors: error.errors });
+  }
+  console.error(error);
+  return res
+    .status(500)
+    .json({ success: false, message: "Server error", error: error.message });
+};
 
 /**
  * Create payment for order
@@ -6,48 +18,22 @@ import prisma from "../../config/prisma.js";
  */
 export async function createPayment(req, res) {
   try {
-    const orderId = req.params.id;
+    const orderId = parseInt(req.params.id, 10);
     const { provider, amount, providerRef } = req.body;
 
-    const order = await prisma.order.findUnique({
-      where: { id: parseInt(orderId, 10) },
+    const payment = await orderService.createPayment(orderId, {
+      provider,
+      amount,
+      providerRef,
     });
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    const payment = await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        provider,
-        providerRef: providerRef || null,
-        amount: amount || order.total,
-        status: "UNPAID",
-      },
-    });
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Payment created",
-      payment: {
-        id: payment.id,
-        provider: payment.provider,
-        amount: parseFloat(payment.amount),
-        status: payment.status,
-        createdAt: payment.createdAt,
-      },
+      payment,
     });
   } catch (error) {
-    console.error("Error creating payment:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create payment",
-      error: error.message,
-    });
+    return handleError(res, error);
   }
 }
 
@@ -57,65 +43,22 @@ export async function createPayment(req, res) {
  */
 export async function updatePaymentStatus(req, res) {
   try {
-    const { id: orderId, paymentId } = req.params;
+    const orderId = parseInt(req.params.id, 10);
+    const paymentId = parseInt(req.params.paymentId, 10);
     const { status, paidAt } = req.body;
 
-    const payment = await prisma.payment.findUnique({
-      where: { id: parseInt(paymentId, 10) },
+    const payment = await orderService.updatePaymentStatus(orderId, paymentId, {
+      status,
+      paidAt,
     });
 
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment not found",
-      });
-    }
-
-    if (payment.orderId !== parseInt(orderId, 10)) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment does not belong to this order",
-      });
-    }
-
-    const updatedPayment = await prisma.payment.update({
-      where: { id: parseInt(paymentId, 10) },
-      data: {
-        status,
-        ...(status === "PAID" && {
-          paidAt: paidAt ? new Date(paidAt) : new Date(),
-        }),
-      },
-    });
-
-    // Create payment event
-    await prisma.paymentEvent.create({
-      data: {
-        paymentId: updatedPayment.id,
-        type: `STATUS_${status}`,
-        occurredAt: new Date(),
-      },
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Payment status updated",
-      payment: {
-        id: updatedPayment.id,
-        provider: updatedPayment.provider,
-        amount: parseFloat(updatedPayment.amount),
-        status: updatedPayment.status,
-        paidAt: updatedPayment.paidAt,
-        createdAt: updatedPayment.createdAt,
-      },
+      payment,
     });
   } catch (error) {
-    console.error("Error updating payment status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update payment status",
-      error: error.message,
-    });
+    return handleError(res, error);
   }
 }
 
@@ -125,48 +68,16 @@ export async function updatePaymentStatus(req, res) {
  */
 export async function getOrderPayments(req, res) {
   try {
-    const orderId = req.params.id;
+    const orderId = parseInt(req.params.id, 10);
 
-    const payments = await prisma.payment.findMany({
-      where: {
-        orderId: parseInt(orderId, 10),
-      },
-      include: {
-        events: {
-          orderBy: {
-            occurredAt: "desc",
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const payments = await orderService.getOrderPayments(orderId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      payments: payments.map((payment) => ({
-        id: payment.id,
-        provider: payment.provider,
-        providerRef: payment.providerRef,
-        amount: parseFloat(payment.amount),
-        status: payment.status,
-        paidAt: payment.paidAt,
-        createdAt: payment.createdAt,
-        events: payment.events.map((event) => ({
-          id: event.id,
-          type: event.type,
-          occurredAt: event.occurredAt,
-        })),
-      })),
+      payments,
     });
   } catch (error) {
-    console.error("Error fetching order payments:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch order payments",
-      error: error.message,
-    });
+    return handleError(res, error);
   }
 }
 
@@ -176,98 +87,21 @@ export async function getOrderPayments(req, res) {
  */
 export async function processRefund(req, res) {
   try {
-    const orderId = req.params.id;
+    const orderId = parseInt(req.params.id, 10);
+    const userId = req.user?.id;
     const { reason, amount } = req.body;
 
-    const order = await prisma.order.findUnique({
-      where: { id: parseInt(orderId, 10) },
-      include: {
-        payments: true,
-      },
+    const result = await orderService.processRefund(orderId, userId, {
+      reason,
+      amount,
     });
 
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    if (order.status !== "CANCELED" && order.status !== "COMPLETED") {
-      return res.status(400).json({
-        success: false,
-        message: "Only canceled or completed orders can be refunded",
-      });
-    }
-
-    // Find paid payment
-    const paidPayment = order.payments.find((p) => p.status === "PAID");
-    if (!paidPayment) {
-      return res.status(400).json({
-        success: false,
-        message: "No paid payment found for this order",
-      });
-    }
-
-    // Process refund in transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Update order status to REFUNDED
-      await tx.order.update({
-        where: { id: order.id },
-        data: {
-          status: "REFUNDED",
-        },
-      });
-
-      // Update payment status
-      const updatedPayment = await tx.payment.update({
-        where: { id: paidPayment.id },
-        data: {
-          status: "REFUNDED",
-        },
-      });
-
-      // Create payment event
-      await tx.paymentEvent.create({
-        data: {
-          paymentId: updatedPayment.id,
-          type: "REFUND_PROCESSED",
-          occurredAt: new Date(),
-          raw: {
-            reason,
-            amount: amount || order.total,
-          },
-        },
-      });
-
-      // Create status history
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: order.id,
-          fromStatus: order.status,
-          toStatus: "REFUNDED",
-          changedByUserId: req.user?.id || null,
-          reason: reason || "Refund processed",
-        },
-      });
-
-      return updatedPayment;
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Refund processed successfully",
-      payment: {
-        id: result.id,
-        status: result.status,
-      },
+      payment: result,
     });
   } catch (error) {
-    console.error("Error processing refund:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to process refund",
-      error: error.message,
-    });
+    return handleError(res, error);
   }
 }
