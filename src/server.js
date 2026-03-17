@@ -1,5 +1,7 @@
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
+import { createServer } from "http";
+import { initSocketServer } from "./realtime/socketServer.js";
 import "dotenv/config";
 
 const PORT = process.env.PORT || 4000;
@@ -32,8 +34,11 @@ try {
   process.exit(1);
 }
 
-// Start server
-const server = app.listen(PORT, () => {
+// Start server (HTTP + Socket)
+const httpServer = createServer(app);
+initSocketServer(httpServer);
+
+const server = httpServer.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`📚 API documentation: http://${HOST}:${PORT}/`);
   console.log(`🏥 Health check: http://${HOST}:${PORT}/health`);

@@ -135,14 +135,14 @@ export async function getAllOrders(req, res) {
 export async function updateOrderNote(req, res) {
   try {
     const orderId = parseInt(req.params.id, 10);
+    const userId = req.user?.id;
     const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
     const { customerNote, internalNote } = req.body;
 
-    const order = await orderService.updateOrderNote(
-      orderId,
-      { customerNote, internalNote },
-      isAdmin,
-    );
+    const order = await orderService.updateOrderNote(orderId, userId, isAdmin, {
+      customerNote,
+      internalNote,
+    });
 
     return res.status(200).json({
       success: true,

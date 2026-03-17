@@ -6,6 +6,13 @@ import {
   AuthenticationError,
 } from "../exceptions/index.js";
 import { getOrCreateCart } from "../controllers/cart/cartHelpers.js";
+import {
+  emitOrderCreated,
+  emitOrderStatusChanged,
+  emitOrderNoteUpdated,
+  emitOrderCanceled,
+  emitOrderPaymentChanged,
+} from "../realtime/orderEvents.js";
 
 /**
  * Order Service
@@ -425,7 +432,10 @@ export class OrderService {
       },
     });
 
-    return this.formatOrderResponse(order);
+    const response = this.formatOrderResponse(order);
+    emitOrderCreated(response);
+
+    return response;
   }
 
   async getOrderById(orderId, userId, isAdmin = false) {
@@ -595,7 +605,10 @@ export class OrderService {
       },
     });
 
-    return this.formatOrderResponse(updated);
+    const response = this.formatOrderResponse(updated);
+    emitOrderNoteUpdated({ order: response, changedByUserId: userId });
+
+    return response;
   }
 
   async deleteOrder(orderId, isAdmin) {
@@ -677,7 +690,15 @@ export class OrderService {
       return updated;
     });
 
-    return this.formatOrderResponse(updatedOrder);
+    const response = this.formatOrderResponse(updatedOrder);
+    emitOrderStatusChanged({
+      order: response,
+      previousStatus: order.status,
+      reason,
+      changedByUserId: userId,
+    });
+
+    return response;
   }
 
   async cancelOrder(orderId, userId, isAdmin, { reason }) {
@@ -753,7 +774,14 @@ export class OrderService {
       return updated;
     });
 
-    return this.formatOrderResponse(updatedOrder);
+    const response = this.formatOrderResponse(updatedOrder);
+    emitOrderCanceled({
+      order: response,
+      reason,
+      changedByUserId: userId,
+    });
+
+    return response;
   }
 
   async getOrderStatusHistory(orderId, userId, isAdmin) {
@@ -832,6 +860,11 @@ export class OrderService {
       },
     });
 
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, code: true, userId: true },
+    });
+
     await prisma.paymentEvent.create({
       data: {
         paymentId: updatedPayment.id,
@@ -840,7 +873,7 @@ export class OrderService {
       },
     });
 
-    return {
+    const paymentResponse = {
       id: updatedPayment.id,
       provider: updatedPayment.provider,
       amount: parseFloat(updatedPayment.amount),
@@ -848,6 +881,15 @@ export class OrderService {
       paidAt: updatedPayment.paidAt,
       createdAt: updatedPayment.createdAt,
     };
+
+    emitOrderPaymentChanged({
+      orderId,
+      orderCode: order?.code || null,
+      userId: order?.userId || null,
+      payment: paymentResponse,
+    });
+
+    return paymentResponse;
   }
 
   async getOrderPayments(orderId) {
