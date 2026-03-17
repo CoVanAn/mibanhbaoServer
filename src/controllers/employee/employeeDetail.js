@@ -24,18 +24,11 @@ export async function getEmployeeDetail(req, res) {
         avatar: true,
         role: true,
         isActive: true,
-        hasPassword: true,
         createdAt: true,
         updatedAt: true,
         oauthAccounts: {
           select: {
             provider: true,
-          },
-        },
-        _count: {
-          select: {
-            orders: true,
-            addresses: true,
           },
         },
       },
@@ -57,12 +50,9 @@ export async function getEmployeeDetail(req, res) {
         avatar: employee.avatar ?? null,
         role: employee.role,
         isActive: employee.isActive,
-        hasPassword: employee.hasPassword,
         createdAt: employee.createdAt,
         updatedAt: employee.updatedAt,
         linkedProviders: employee.oauthAccounts.map((o) => o.provider),
-        ordersHandledCount: employee._count.orders,
-        addressesCount: employee._count.addresses,
       },
     });
   } catch (error) {

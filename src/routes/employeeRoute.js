@@ -10,11 +10,17 @@ import {
   employeeListSchema,
   employeeIdSchema,
   employeeStatusSchema,
+  createEmployeeSchema,
+  updateEmployeeSchema,
+  resetEmployeePasswordSchema,
 } from "../schemas/employee.schema.js";
 import {
   getEmployeeList,
   getEmployeeDetail,
   toggleEmployeeStatus,
+  createEmployee,
+  updateEmployee,
+  resetEmployeePassword,
 } from "../controllers/employee/index.js";
 
 const employeeRouter = express.Router();
@@ -29,6 +35,18 @@ employeeRouter.get(
   requireRoles("ADMIN", "STAFF"),
   validateQuery(employeeListSchema),
   getEmployeeList,
+);
+
+/**
+ * POST /api/admin/employees
+ * Roles: ADMIN
+ */
+employeeRouter.post(
+  "/api/admin/employees",
+  authMiddleware,
+  requireRoles("ADMIN"),
+  validate(createEmployeeSchema),
+  createEmployee,
 );
 
 /**
@@ -54,6 +72,32 @@ employeeRouter.patch(
   validateParams(employeeIdSchema),
   validate(employeeStatusSchema),
   toggleEmployeeStatus,
+);
+
+/**
+ * PATCH /api/admin/employees/:id
+ * Roles: ADMIN
+ */
+employeeRouter.patch(
+  "/api/admin/employees/:id",
+  authMiddleware,
+  requireRoles("ADMIN"),
+  validateParams(employeeIdSchema),
+  validate(updateEmployeeSchema),
+  updateEmployee,
+);
+
+/**
+ * PATCH /api/admin/employees/:id/reset-password
+ * Roles: ADMIN
+ */
+employeeRouter.patch(
+  "/api/admin/employees/:id/reset-password",
+  authMiddleware,
+  requireRoles("ADMIN"),
+  validateParams(employeeIdSchema),
+  validate(resetEmployeePasswordSchema),
+  resetEmployeePassword,
 );
 
 export default employeeRouter;

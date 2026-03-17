@@ -57,13 +57,7 @@ export async function getEmployeeList(req, res) {
           avatar: true,
           role: true,
           isActive: true,
-          hasPassword: true,
           createdAt: true,
-          _count: {
-            select: {
-              orders: true,
-            },
-          },
         },
         orderBy,
         skip,
@@ -79,9 +73,7 @@ export async function getEmployeeList(req, res) {
       avatar: e.avatar ?? null,
       role: e.role,
       isActive: e.isActive,
-      hasPassword: e.hasPassword,
       createdAt: e.createdAt,
-      ordersHandledCount: e._count.orders,
     }));
 
     return res.json({
