@@ -12,6 +12,7 @@ import orderRouter from "./routes/orderRoute.js";
 import couponRouter from "./routes/couponRoute.js";
 import customerRouter from "./routes/customerRoute.js";
 import employeeRouter from "./routes/employeeRoute.js";
+import dashboardRouter from "./routes/dashboardRoute.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
@@ -91,6 +92,7 @@ app.get("/", (req, res) => {
       categories: "/api/category",
       orders: "/api/order",
       coupons: "/api/coupon",
+      dashboard: "/api/dashboard",
       auth: "/auth",
     },
   });
@@ -103,6 +105,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/coupon", couponRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/auth", authRouter);
 app.use("/", customerRouter);
 app.use("/", employeeRouter);

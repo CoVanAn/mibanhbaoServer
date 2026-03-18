@@ -20,12 +20,17 @@ export * from "./order.schema.js";
 
 // Coupon schemas
 export * from "./coupon.schema.js";
+
+// Dashboard schemas
+export * from "./dashboard.schema.js";
+
 // Re-export for convenience
 import * as cartSchemas from "./cart.schema.js";
 import * as userSchemas from "./user.schema.js";
 import * as productSchemas from "./product.schema.js";
 import * as categorySchemas from "./category.schema.js";
 import * as orderSchemas from "./order.schema.js";
+import * as dashboardSchemas from "./dashboard.schema.js";
 
 export default {
   cart: cartSchemas,
@@ -33,4 +38,5 @@ export default {
   product: productSchemas,
   category: categorySchemas,
   order: orderSchemas,
+  dashboard: dashboardSchemas,
 };
