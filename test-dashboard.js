@@ -30,8 +30,11 @@ async function testDashboardAPIs() {
       });
       console.log("✓ Overview success");
       console.log(`   Metrics:`, response.data.metrics);
-    } catch (error: any) {
-      console.error("✗ Overview failed:", error.response?.data || error.message);
+    } catch (error) {
+      console.error(
+        "✗ Overview failed:",
+        error.response?.data || error.message,
+      );
     }
 
     // Test 2: Daily (last 7 days)
@@ -51,7 +54,7 @@ async function testDashboardAPIs() {
       if (response.data.daily.length > 0) {
         console.log(`   First day:`, response.data.daily[0]);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("✗ Daily failed:", error.response?.data || error.message);
     }
 
@@ -66,7 +69,7 @@ async function testDashboardAPIs() {
       if (response.data.topProducts.length > 0) {
         console.log(`   Top product:`, response.data.topProducts[0]);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(
         "✗ Top products failed:",
         error.response?.data || error.message,
@@ -76,14 +79,21 @@ async function testDashboardAPIs() {
     // Test 4: Low Stock
     console.log("\n4️⃣  Testing /low-stock?limit=10");
     try {
-      const response = await client.get("/low-stock", { params: { limit: 10 } });
+      const response = await client.get("/low-stock", {
+        params: { limit: 10 },
+      });
       console.log("✓ Low stock success");
-      console.log(`   Items below safety stock: ${response.data.lowStock.length}`);
+      console.log(
+        `   Items below safety stock: ${response.data.lowStock.length}`,
+      );
       if (response.data.lowStock.length > 0) {
         console.log(`   First low stock:`, response.data.lowStock[0]);
       }
-    } catch (error: any) {
-      console.error("✗ Low stock failed:", error.response?.data || error.message);
+    } catch (error) {
+      console.error(
+        "✗ Low stock failed:",
+        error.response?.data || error.message,
+      );
     }
 
     console.log("\n✅ Dashboard API tests complete!");

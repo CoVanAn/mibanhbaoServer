@@ -1,6 +1,7 @@
 import prisma from "../config/prisma.js";
 
 const NON_REVENUE_STATUSES = ["CANCELED", "REFUNDED"];
+const LOW_STOCK_THRESHOLD = 15;
 
 const toNumber = (value) => Number.parseFloat(value || 0);
 
@@ -79,12 +80,16 @@ class DashboardService {
 
     const validOrderCount = ordersInQuarter.length;
     const aov = validOrderCount > 0 ? totalRevenue / validOrderCount : 0;
-    const cancelRate = totalOrders > 0 ? (canceledOrders / totalOrders) * 100 : 0;
+    const cancelRate =
+      totalOrders > 0 ? (canceledOrders / totalOrders) * 100 : 0;
 
     const monthlyMap = new Map();
     for (const order of ordersInQuarter) {
       const monthKey = getMonthKey(order.createdAt);
-      monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + toNumber(order.total));
+      monthlyMap.set(
+        monthKey,
+        (monthlyMap.get(monthKey) || 0) + toNumber(order.total),
+      );
     }
 
     const trend = [];
@@ -146,7 +151,10 @@ class DashboardService {
 
     for (const order of orders) {
       const key = getDateKey(order.createdAt);
-      revenueByDate.set(key, (revenueByDate.get(key) || 0) + toNumber(order.total));
+      revenueByDate.set(
+        key,
+        (revenueByDate.get(key) || 0) + toNumber(order.total),
+      );
       orderCountByDate.set(key, (orderCountByDate.get(key) || 0) + 1);
     }
 
@@ -176,13 +184,7 @@ class DashboardService {
     };
   }
 
-  async getTopProducts({
-    startDate,
-    endDate,
-    year,
-    quarter,
-    limit = 5,
-  }) {
+  async getTopProducts({ startDate, endDate, year, quarter, limit = 5 }) {
     let start = null;
     let end = null;
 
@@ -252,7 +254,7 @@ class DashboardService {
     const inventories = await prisma.inventory.findMany({
       where: {
         quantity: {
-          lte: prisma.inventory.fields.safetyStock,
+          lt: LOW_STOCK_THRESHOLD,
         },
       },
       include: {
@@ -272,6 +274,7 @@ class DashboardService {
     });
 
     return {
+      lowStockThreshold: LOW_STOCK_THRESHOLD,
       lowStock: inventories.map((item) => ({
         variantId: item.variantId,
         productId: item.variant?.product?.id || null,
