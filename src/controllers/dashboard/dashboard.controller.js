@@ -1,13 +1,11 @@
 import dashboardService from "../../services/dashboard.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
 
-const handleError = (res, error) => {
-  console.error(error);
-  return res.status(500).json({
-    success: false,
-    message: "Server error",
-    error: error.message,
-  });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Server error",
+  includeOperationalErrors: false,
+  includeErrorDetails: true,
+});
 
 export async function getDashboardOverview(req, res) {
   try {

@@ -1,16 +1,16 @@
 import orderService from "../../services/order.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message, errors: error.errors });
-  }
-  console.error(error);
-  return res
-    .status(500)
-    .json({ success: false, message: "Server error", error: error.message });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Server error",
+  includeOperationalErrors: true,
+  includeOperationalDetails: true,
+  includeErrorDetails: true,
+});
+
+const isAdminOrStaff = (user) =>
+  user?.role === "ADMIN" || user?.role === "STAFF";
 
 /**
  * Create new order from cart
@@ -48,9 +48,14 @@ export async function createOrder(req, res) {
  */
 export async function getOrderById(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const isAdmin = isAdminOrStaff(req.user);
 
     const order = await orderService.getOrderById(orderId, userId, isAdmin);
 
@@ -134,9 +139,14 @@ export async function getAllOrders(req, res) {
  */
 export async function updateOrderNote(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const isAdmin = isAdminOrStaff(req.user);
     const { customerNote, internalNote } = req.body;
 
     const order = await orderService.updateOrderNote(orderId, userId, isAdmin, {
@@ -160,8 +170,13 @@ export async function updateOrderNote(req, res) {
  */
 export async function deleteOrder(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
+    const isAdmin = isAdminOrStaff(req.user);
 
     await orderService.deleteOrder(orderId, isAdmin);
 

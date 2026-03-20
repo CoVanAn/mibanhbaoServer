@@ -1,4 +1,10 @@
 import prisma from "../../config/prisma.js";
+import {
+  isEmployeeRole,
+  linkedProvidersFrom,
+} from "../user/adminUserHelpers.js";
+
+import { parsePositiveInt } from "../../utils/id.js";
 
 /**
  * GET /api/admin/employees/:id
@@ -7,8 +13,8 @@ import prisma from "../../config/prisma.js";
  */
 export async function getEmployeeDetail(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID nhân viên không hợp lệ" });
@@ -34,7 +40,7 @@ export async function getEmployeeDetail(req, res) {
       },
     });
 
-    if (!employee || (employee.role !== "ADMIN" && employee.role !== "STAFF")) {
+    if (!employee || !isEmployeeRole(employee.role)) {
       return res
         .status(404)
         .json({ success: false, message: "Không tìm thấy nhân viên" });
@@ -52,7 +58,7 @@ export async function getEmployeeDetail(req, res) {
         isActive: employee.isActive,
         createdAt: employee.createdAt,
         updatedAt: employee.updatedAt,
-        linkedProviders: employee.oauthAccounts.map((o) => o.provider),
+        linkedProviders: linkedProvidersFrom(employee),
       },
     });
   } catch (error) {

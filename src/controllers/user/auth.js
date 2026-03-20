@@ -1,4 +1,5 @@
 import userService from "../../services/user.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
 
 const getRefreshCookieName = (req) =>
   req.headers["x-client-type"] === "admin"
@@ -16,15 +17,10 @@ const setCookieOptions = (res, cookieName, token) => {
   });
 };
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message });
-  }
-  console.error(error);
-  return res.status(500).json({ success: false, message: "Lỗi server" });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Lỗi server",
+  includeOperationalErrors: true,
+});
 
 // Register user
 const registerUser = async (req, res) => {
@@ -33,14 +29,12 @@ const registerUser = async (req, res) => {
       req.body,
     );
     setCookieOptions(res, "refreshToken", refreshToken);
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Đăng ký thành công",
-        accessToken,
-        user,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Đăng ký thành công",
+      accessToken,
+      user,
+    });
   } catch (error) {
     return handleError(res, error);
   }
@@ -54,20 +48,19 @@ const loginUser = async (req, res) => {
     );
     const cookieName = getRefreshCookieName(req);
     setCookieOptions(res, cookieName, refreshToken);
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Đăng nhập thành công",
-        accessToken,
-        user,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Đăng nhập thành công",
+      accessToken,
+      user,
+    });
   } catch (error) {
     return handleError(res, error);
   }
 };
 
 // Get current user (for token validation)
+
 const getCurrentUser = async (req, res) => {
   try {
     const user = await userService.getCurrentUser(req.user.id);

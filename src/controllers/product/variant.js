@@ -1,30 +1,29 @@
 import prisma from "../../config/prisma.js";
 import { createInventoryForVariant } from "../../utils/inventoryHelpers.js";
 import { getCurrentPrice } from "../../utils/priceHelpers.js";
+import {
+  getExistingProduct,
+  getVariantWithOwnership,
+  parsePositiveId,
+} from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants
 export const createVariant = async (req, res) => {
   try {
-    console.log("=== CREATE VARIANT DEBUG ===");
-    console.log("Params:", req.params);
-    console.log("Body:", req.body);
-    console.log("User:", req.user);
-
-    const pid = Number(req.params.id);
+    const pid = parsePositiveId(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
-    const product = await prisma.product.findUnique({ where: { id: pid } });
+    const product = await getExistingProduct(pid);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const { name, sku, isActive = true, initialStock = 0, safetyStock = 0 } = req.body;
-    if (!name) return res.status(400).json({ message: "name required" });
-
-    console.log("Creating variant with data:", {
-      productId: pid,
+    const {
       name,
-      sku: sku || `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      isActive,
-    });
+      sku,
+      isActive = true,
+      initialStock = 0,
+      safetyStock = 0,
+    } = req.body;
+    if (!name) return res.status(400).json({ message: "name required" });
 
     const variant = await prisma.productVariant.create({
       data: {
@@ -35,13 +34,9 @@ export const createVariant = async (req, res) => {
       },
     });
 
-    console.log("Created variant:", variant);
-
     // Auto-create inventory for the new variant
-    console.log("Creating inventory with:", { variantId: variant.id, initialStock, safetyStock });
     await createInventoryForVariant(variant.id, initialStock, safetyStock);
 
-    console.log("Success!");
     return res.json({ success: true, id: variant.id });
   } catch (err) {
     console.error("createVariant error:", err);
@@ -52,15 +47,13 @@ export const createVariant = async (req, res) => {
 // PATCH /api/product/:id/variants/:variantId
 export const updateVariant = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const vid = Number(req.params.variantId);
+    const pid = parsePositiveId(req.params.id);
+    const vid = parsePositiveId(req.params.variantId);
     if (!pid || !vid)
       return res.status(400).json({ message: "invalid id or variantId" });
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-    if (!variant || variant.productId !== pid) {
+    const { variant } = await getVariantWithOwnership(vid, pid);
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
@@ -82,15 +75,13 @@ export const updateVariant = async (req, res) => {
 // DELETE /api/product/:id/variants/:variantId
 export const deleteVariant = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const vid = Number(req.params.variantId);
+    const pid = parsePositiveId(req.params.id);
+    const vid = parsePositiveId(req.params.variantId);
     if (!pid || !vid)
       return res.status(400).json({ message: "invalid id or variantId" });
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-    if (!variant || variant.productId !== pid) {
+    const { variant } = await getVariantWithOwnership(vid, pid);
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
@@ -121,10 +112,10 @@ export const deleteVariant = async (req, res) => {
 // GET /api/product/:id/variants
 export const getProductVariants = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = parsePositiveId(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
-    const product = await prisma.product.findUnique({ where: { id: pid } });
+    const product = await getExistingProduct(pid);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const variants = await prisma.productVariant.findMany({
@@ -132,10 +123,7 @@ export const getProductVariants = async (req, res) => {
       include: {
         prices: {
           where: { isActive: true },
-          orderBy: [
-            { startsAt: 'desc' },
-            { id: 'desc' }
-          ],
+          orderBy: [{ startsAt: "desc" }, { id: "desc" }],
         },
         inventory: true,
       },
@@ -150,7 +138,7 @@ export const getProductVariants = async (req, res) => {
           ...v,
           currentPrice: currentPrice?.amount || null,
         };
-      })
+      }),
     );
 
     return res.json({ success: true, variants: variantsWithCurrentPrice });
@@ -163,11 +151,11 @@ export const getProductVariants = async (req, res) => {
 // GET /api/product/:id/variants/:variantId or /api/product/variant/:variantId
 export const getVariant = async (req, res) => {
   try {
-    const pid = req.params.id ? Number(req.params.id) : null;
-    const vid = Number(req.params.variantId);
+    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
+    const vid = parsePositiveId(req.params.variantId);
     if (!vid) return res.status(400).json({ message: "invalid variantId" });
 
-    const variant = await prisma.productVariant.findUnique({
+    const variantWithDetails = await prisma.productVariant.findUnique({
       where: { id: vid },
       include: {
         product: true,
@@ -178,18 +166,18 @@ export const getVariant = async (req, res) => {
       },
     });
 
-    if (!variant) {
+    if (!variantWithDetails) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
     // Nếu có productId trong URL, kiểm tra match
-    if (pid && variant.productId !== pid) {
+    if (pid && variantWithDetails.productId !== pid) {
       return res
         .status(404)
         .json({ message: "Variant not found for this product" });
     }
 
-    return res.json({ success: true, variant });
+    return res.json({ success: true, variant: variantWithDetails });
   } catch (err) {
     console.error("getVariant error:", err);
     return res.status(500).json({ message: "error" });

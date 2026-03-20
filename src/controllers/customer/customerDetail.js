@@ -1,5 +1,7 @@
 import prisma from "../../config/prisma.js";
+import { linkedProvidersFrom } from "../user/adminUserHelpers.js";
 
+import { parsePositiveInt } from "../../utils/id.js";
 /**
  * GET /api/admin/customers/:id
  * Get full customer detail: profile + addresses + order history + coupon usage
@@ -7,8 +9,8 @@ import prisma from "../../config/prisma.js";
  */
 export async function getCustomerDetail(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID khách hàng không hợp lệ" });
@@ -134,7 +136,7 @@ export async function getCustomerDetail(req, res) {
         hasPassword: customer.hasPassword,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
-        linkedProviders: customer.oauthAccounts.map((o) => o.provider),
+        linkedProviders: linkedProvidersFrom(customer),
         addresses: customer.addresses,
         orders,
         couponRedemptions: customer.couponRedemptions,

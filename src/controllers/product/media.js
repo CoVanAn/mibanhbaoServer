@@ -1,10 +1,11 @@
 import prisma from "../../config/prisma.js";
 import cloudinary from "../../config/cloudinary.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 // POST /api/product/:id/media
 export const addProductMedia = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = parsePositiveInt(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
@@ -27,7 +28,7 @@ export const addProductMedia = async (req, res) => {
         const up = await new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             { folder, resource_type: "image" },
-            (err, result) => (err ? reject(err) : resolve(result))
+            (err, result) => (err ? reject(err) : resolve(result)),
           );
           stream.end(f.buffer);
         });
@@ -65,8 +66,8 @@ export const addProductMedia = async (req, res) => {
 // DELETE /api/product/:id/media/:mediaId
 export const deleteProductMedia = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const mid = Number(req.params.mediaId);
+    const pid = parsePositiveInt(req.params.id);
+    const mid = parsePositiveInt(req.params.mediaId);
     if (!pid || !mid)
       return res.status(400).json({ message: "invalid id or mediaId" });
 
@@ -79,7 +80,7 @@ export const deleteProductMedia = async (req, res) => {
     if (media.url) {
       try {
         const match = media.url.match(
-          /upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/
+          /upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/,
         );
         const publicId = match ? match[1] : null;
         if (publicId) {
@@ -102,7 +103,7 @@ export const deleteProductMedia = async (req, res) => {
 // PATCH /api/product/:id/media/reorder
 export const reorderProductMedia = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = parsePositiveInt(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
@@ -151,8 +152,8 @@ export const reorderProductMedia = async (req, res) => {
 // PATCH /api/product/:id/media/:mediaId
 export const updateProductMedia = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const mid = Number(req.params.mediaId);
+    const pid = parsePositiveInt(req.params.id);
+    const mid = parsePositiveInt(req.params.mediaId);
     if (!pid || !mid)
       return res.status(400).json({ message: "invalid id or mediaId" });
 

@@ -6,19 +6,21 @@ import {
   setPermanentPrice,
   setScheduledPrice,
 } from "../../utils/priceHelpers.js";
+import {
+  getVariantWithOwnership,
+  parsePositiveId,
+} from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
 export const setVariantPrice = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const vid = Number(req.params.variantId);
+    const pid = parsePositiveId(req.params.id);
+    const vid = parsePositiveId(req.params.variantId);
     if (!pid || !vid)
       return res.status(400).json({ message: "invalid id or variantId" });
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-    if (!variant || variant.productId !== pid) {
+    const { variant } = await getVariantWithOwnership(vid, pid);
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
@@ -58,27 +60,17 @@ export const setVariantPrice = async (req, res) => {
 // GET /api/product/variant/:variantId/prices
 export const getVariantPricesController = async (req, res) => {
   try {
-    const pid = req.params.id ? Number(req.params.id) : null;
-    const vid = Number(req.params.variantId);
+    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
+    const vid = parsePositiveId(req.params.variantId);
     const { includeInactive } = req.query;
 
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-
+    const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
-    }
-
-    // If product ID provided, validate ownership
-    if (pid && variant.productId !== pid) {
-      return res
-        .status(404)
-        .json({ message: "Variant not found in this product" });
     }
 
     // Use helper function for better price ordering
@@ -99,9 +91,9 @@ export const getVariantPricesController = async (req, res) => {
 // PATCH /api/product/:id/variants/:variantId/price/:priceId
 export const updateVariantPrice = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const vid = Number(req.params.variantId);
-    const priceId = Number(req.params.priceId);
+    const pid = parsePositiveId(req.params.id);
+    const vid = parsePositiveId(req.params.variantId);
+    const priceId = parsePositiveId(req.params.priceId);
 
     if (!pid || !vid || !priceId) {
       return res
@@ -109,10 +101,8 @@ export const updateVariantPrice = async (req, res) => {
         .json({ message: "invalid id, variantId, or priceId" });
     }
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-    if (!variant || variant.productId !== pid) {
+    const { variant } = await getVariantWithOwnership(vid, pid);
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
@@ -158,7 +148,7 @@ export const updateVariantPrice = async (req, res) => {
         vid,
         updateData.startsAt ?? existingPrice.startsAt,
         updateData.endsAt ?? existingPrice.endsAt,
-        priceId
+        priceId,
       );
 
       if (!validation.isValid) {
@@ -182,18 +172,9 @@ export const updateVariantPrice = async (req, res) => {
 // DELETE /api/product/:id/variants/:variantId/price/:priceId
 export const deleteVariantPrice = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const vid = Number(req.params.variantId);
-    const priceId = Number(req.params.priceId);
-
-    console.log(
-      "Deleting price:",
-      priceId,
-      "for variant:",
-      vid,
-      "product:",
-      pid
-    );
+    const pid = parsePositiveId(req.params.id);
+    const vid = parsePositiveId(req.params.variantId);
+    const priceId = parsePositiveId(req.params.priceId);
 
     if (!pid || !vid || !priceId) {
       return res
@@ -202,11 +183,8 @@ export const deleteVariantPrice = async (req, res) => {
     }
 
     // Kiểm tra variant tồn tại
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-
-    if (!variant || variant.productId !== pid) {
+    const { variant } = await getVariantWithOwnership(vid, pid);
+    if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
@@ -241,7 +219,6 @@ export const deleteVariantPrice = async (req, res) => {
       where: { id: priceId },
     });
 
-    console.log("✓ Successfully deleted price:", priceId);
     return res.json({
       success: true,
       message: "Price deleted successfully",

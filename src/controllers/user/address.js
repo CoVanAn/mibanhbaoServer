@@ -1,14 +1,11 @@
 import userService from "../../services/user.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message });
-  }
-  console.error(error);
-  return res.status(500).json({ success: false, message: "Lỗi server" });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Lỗi server",
+  includeOperationalErrors: true,
+});
 
 // Get user addresses
 export const getUserAddresses = async (req, res) => {
@@ -23,7 +20,7 @@ export const getUserAddresses = async (req, res) => {
 // Get single address
 export const getAddress = async (req, res) => {
   try {
-    const addressId = Number(req.params.id);
+    const addressId = parsePositiveInt(req.params.id);
     if (!addressId) {
       return res
         .status(400)
@@ -49,7 +46,7 @@ export const addAddress = async (req, res) => {
 // Update address
 export const updateAddress = async (req, res) => {
   try {
-    const addressId = Number(req.params.id);
+    const addressId = parsePositiveInt(req.params.id);
     if (!addressId) {
       return res
         .status(400)
@@ -69,7 +66,7 @@ export const updateAddress = async (req, res) => {
 // Delete address
 export const deleteAddress = async (req, res) => {
   try {
-    const addressId = Number(req.params.id);
+    const addressId = parsePositiveInt(req.params.id);
     if (!addressId) {
       return res
         .status(400)

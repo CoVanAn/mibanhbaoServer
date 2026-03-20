@@ -1,4 +1,12 @@
 import prisma from "../../config/prisma.js";
+import {
+  applyIsActiveFilter,
+  applyUserSearchFilter,
+  buildPagination,
+  getPagingParams,
+  mapUserSummary,
+} from "../user/adminUserHelpers.js";
+
 
 /**
  * GET /api/admin/customers
@@ -8,33 +16,15 @@ import prisma from "../../config/prisma.js";
 export async function getCustomerList(req, res) {
   try {
     const { page, limit, search, isActive, sortBy, order } = req.query;
-
-    const pageNum = parseInt(page || "1", 10);
-    const limitNum = parseInt(limit || "20", 10);
-    const skip = (pageNum - 1) * limitNum;
+    const { pageNum, limitNum, skip } = getPagingParams({ page, limit });
 
     // Build where clause
     const where = {
       role: "CUSTOMER",
     };
 
-    if (typeof isActive === "boolean") {
-      where.isActive = isActive;
-    } else if (isActive === "true") {
-      where.isActive = true;
-    } else if (isActive === "false") {
-      where.isActive = false;
-    }
-
-    const trimmedSearch = search ? search.trim() : null;
-
-    if (trimmedSearch) {
-      where.OR = [
-        { name: { contains: trimmedSearch, mode: "insensitive" } },
-        { email: { contains: trimmedSearch, mode: "insensitive" } },
-        { phone: { contains: trimmedSearch, mode: "insensitive" } },
-      ];
-    }
+    applyIsActiveFilter(where, isActive);
+    applyUserSearchFilter(where, search);
 
     // Build orderBy — ordersCount needs special handling (sort by _count after fetch)
     const sortField = sortBy || "createdAt";
@@ -68,16 +58,9 @@ export async function getCustomerList(req, res) {
     ]);
 
     // Reshape response
-    const data = customers.map((c) => ({
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      phone: c.phone ?? null,
-      avatar: c.avatar ?? null,
-      isActive: c.isActive,
-      createdAt: c.createdAt,
-      ordersCount: c._count.orders,
-    }));
+    const data = customers.map((customer) =>
+      mapUserSummary(customer, { includeOrdersCount: true }),
+    );
 
     // Sort by ordersCount in JS when requested
     if (sortField === "ordersCount") {
@@ -91,12 +74,7 @@ export async function getCustomerList(req, res) {
     return res.json({
       success: true,
       customers: data,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      },
+      pagination: buildPagination(pageNum, limitNum, total),
     });
   } catch (error) {
     console.error("getCustomerList error:", error);

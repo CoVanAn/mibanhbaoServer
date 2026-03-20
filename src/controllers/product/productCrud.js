@@ -7,6 +7,7 @@ import {
   buildProductSummary,
   buildProductDetail,
 } from "../../utils/productFormatters.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 // Helper functions moved to utils/productFormatters.js
 
@@ -123,7 +124,7 @@ export const getProduct = async (req, res, next) => {
 // PATCH /api/product/:id
 export const updateProduct = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id);
     if (!id) {
       return res.status(400).json({ message: "invalid id" });
     }
@@ -151,7 +152,7 @@ export const updateProduct = async (req, res, next) => {
 export const removeProduct = async (req, res, next) => {
   try {
     const { id } = req.body;
-    const pid = Number(id);
+    const pid = parsePositiveInt(id);
     if (!pid)
       return res.status(400).json({ success: false, message: "id required" });
 
@@ -166,7 +167,7 @@ export const removeProduct = async (req, res, next) => {
 // DELETE /api/product/:id
 export const deleteProduct = async (req, res, next) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = parsePositiveInt(req.params.id);
     if (!pid)
       return res.status(400).json({ success: false, message: "invalid id" });
 

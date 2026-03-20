@@ -1,4 +1,7 @@
 import prisma from "../../config/prisma.js";
+import { isEmployeeRole } from "../user/adminUserHelpers.js";
+
+import { parsePositiveInt } from "../../utils/id.js";
 
 /**
  * PATCH /api/admin/employees/:id/status
@@ -7,8 +10,8 @@ import prisma from "../../config/prisma.js";
  */
 export async function toggleEmployeeStatus(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID nhân viên không hợp lệ" });
@@ -33,7 +36,7 @@ export async function toggleEmployeeStatus(req, res) {
       select: { id: true, role: true },
     });
 
-    if (!existing || (existing.role !== "ADMIN" && existing.role !== "STAFF")) {
+    if (!existing || !isEmployeeRole(existing.role)) {
       return res
         .status(404)
         .json({ success: false, message: "Không tìm thấy nhân viên" });

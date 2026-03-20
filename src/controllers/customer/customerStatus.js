@@ -1,4 +1,5 @@
 import prisma from "../../config/prisma.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 /**
  * PATCH /api/admin/customers/:id/status
@@ -7,8 +8,8 @@ import prisma from "../../config/prisma.js";
  */
 export async function toggleCustomerStatus(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID khách hàng không hợp lệ" });

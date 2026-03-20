@@ -1,4 +1,14 @@
 import prisma from "../../config/prisma.js";
+import {
+  applyIsActiveFilter,
+  applyUserSearchFilter,
+  buildPagination,
+  EMPLOYEE_ROLES,
+  getPagingParams,
+  mapUserSummary,
+} from "../user/adminUserHelpers.js";
+
+
 
 /**
  * GET /api/admin/employees
@@ -8,14 +18,11 @@ import prisma from "../../config/prisma.js";
 export async function getEmployeeList(req, res) {
   try {
     const { page, limit, search, role, isActive, sortBy, order } = req.query;
-
-    const pageNum = parseInt(page || "1", 10);
-    const limitNum = parseInt(limit || "20", 10);
-    const skip = (pageNum - 1) * limitNum;
+    const { pageNum, limitNum, skip } = getPagingParams({ page, limit });
 
     const where = {
       role: {
-        in: ["ADMIN", "STAFF"],
+        in: EMPLOYEE_ROLES,
       },
     };
 
@@ -23,23 +30,8 @@ export async function getEmployeeList(req, res) {
       where.role = role;
     }
 
-    if (typeof isActive === "boolean") {
-      where.isActive = isActive;
-    } else if (isActive === "true") {
-      where.isActive = true;
-    } else if (isActive === "false") {
-      where.isActive = false;
-    }
-
-    const trimmedSearch = search ? search.trim() : null;
-
-    if (trimmedSearch) {
-      where.OR = [
-        { name: { contains: trimmedSearch, mode: "insensitive" } },
-        { email: { contains: trimmedSearch, mode: "insensitive" } },
-        { phone: { contains: trimmedSearch, mode: "insensitive" } },
-      ];
-    }
+    applyIsActiveFilter(where, isActive);
+    applyUserSearchFilter(where, search);
 
     const sortField = sortBy || "createdAt";
     const sortOrder = order || "desc";
@@ -65,26 +57,14 @@ export async function getEmployeeList(req, res) {
       }),
     ]);
 
-    const data = employees.map((e) => ({
-      id: e.id,
-      name: e.name,
-      email: e.email,
-      phone: e.phone ?? null,
-      avatar: e.avatar ?? null,
-      role: e.role,
-      isActive: e.isActive,
-      createdAt: e.createdAt,
-    }));
+    const data = employees.map((employee) =>
+      mapUserSummary(employee, { includeRole: true }),
+    );
 
     return res.json({
       success: true,
       employees: data,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      },
+      pagination: buildPagination(pageNum, limitNum, total),
     });
   } catch (error) {
     console.error("getEmployeeList error:", error);

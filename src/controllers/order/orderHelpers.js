@@ -170,8 +170,10 @@ export async function validateOrderCreation(cart, method, addressId) {
       where: { id: item.variantId },
       include: { product: true },
     });
-
-    if (!variant.isActive || !variant.product.isActive) {
+    if (!variant) {
+      errors.push(`Product variant ${item.variantId} not found`);
+      continue;
+    } else if (!variant.isActive || !variant.product.isActive) {
       errors.push(
         `Product ${variant.product.name} - ${variant.name} is no longer available`,
       );

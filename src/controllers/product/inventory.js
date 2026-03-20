@@ -1,29 +1,23 @@
 import prisma from "../../config/prisma.js";
+import {
+  getVariantWithOwnership,
+  parsePositiveId,
+} from "./productControllerHelpers.js";
 
 // GET /api/product/:id/variants/:variantId/inventory
 // GET /api/product/variant/:variantId/inventory
 export const getInventory = async (req, res) => {
   try {
-    const pid = req.params.id ? Number(req.params.id) : null;
-    const vid = Number(req.params.variantId);
+    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
+    const vid = parsePositiveId(req.params.variantId);
 
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-
+    const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
-    }
-
-    // If product ID provided, validate ownership
-    if (pid && variant.productId !== pid) {
-      return res
-        .status(404)
-        .json({ message: "Variant not found in this product" });
     }
 
     const inventory = await prisma.inventory.findUnique({
@@ -43,26 +37,16 @@ export const getInventory = async (req, res) => {
 // PATCH /api/product/variant/:variantId/inventory
 export const updateInventory = async (req, res) => {
   try {
-    const pid = req.params.id ? Number(req.params.id) : null;
-    const vid = Number(req.params.variantId);
+    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
+    const vid = parsePositiveId(req.params.variantId);
 
     if (!vid) {
       return res.status(400).json({ message: "invalid variantId" });
     }
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: vid },
-    });
-
+    const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
-    }
-
-    // If product ID provided, validate ownership
-    if (pid && variant.productId !== pid) {
-      return res
-        .status(404)
-        .json({ message: "Variant not found in this product" });
     }
 
     const { quantity, safetyStock } = req.body;

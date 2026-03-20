@@ -1,10 +1,12 @@
-import prisma from "../../config/prisma.js";
 import {
   getOrCreateCart,
   formatCartResponse,
   mergeGuestCartToUser,
-  calculateCartTotals,
 } from "./cartHelpers.js";
+import {
+  applyCouponToCart,
+  removeCouponFromCart,
+} from "../coupon/couponApply.js";
 
 /**
  * Get current cart
@@ -27,31 +29,6 @@ export async function getCart(req, res) {
           currency: "VND",
         },
       });
-    }
-
-    // Auto-merge guest cart if user is logged in and has a guest token
-    if (userId && guestToken) {
-      console.log(
-        "[getCart] User logged in with guest token, checking for guest cart to merge",
-      );
-
-      // Check if guest cart exists and has items
-      const guestCart = await prisma.cart.findFirst({
-        where: { guestToken },
-        include: { items: true },
-      });
-
-      if (guestCart && guestCart.items.length > 0) {
-        console.log(
-          `[getCart] Found guest cart ${guestCart.id} with ${guestCart.items.length} items, merging...`,
-        );
-        const mergedCart = await mergeGuestCartToUser(userId, guestToken);
-
-        return res.status(200).json({
-          success: true,
-          cart: formatCartResponse(mergedCart),
-        });
-      }
     }
 
     const cart = await getOrCreateCart(userId, guestToken);
@@ -129,92 +106,26 @@ export async function applyCoupon(req, res) {
       });
     }
 
-    // Get cart
-    const cart = await getOrCreateCart(userId, guestToken);
-
-    // Find coupon — chỉ lấy scalar fields, không include redemptions array
-    const coupon = await prisma.coupon.findUnique({
-      where: { code: couponCode },
+    const result = await applyCouponToCart({
+      code: couponCode,
+      userId,
+      guestToken,
+      messages: {
+        couponNotFound: "Invalid coupon code",
+      },
     });
 
-    if (!coupon) {
-      return res.status(404).json({
+    if (!result.ok) {
+      return res.status(result.status).json({
         success: false,
-        message: "Invalid coupon code",
+        message: result.message,
       });
     }
-
-    if (!coupon.isActive) {
-      return res.status(400).json({
-        success: false,
-        message: "Coupon is not active",
-      });
-    }
-
-    // Check expiry
-    const now = new Date();
-    if (coupon.startsAt && now < coupon.startsAt) {
-      return res.status(400).json({
-        success: false,
-        message: "Coupon is not yet valid",
-      });
-    }
-
-    if (coupon.endsAt && now > coupon.endsAt) {
-      return res.status(400).json({
-        success: false,
-        message: "Coupon has expired",
-      });
-    }
-
-    // Check redemption limits — dùng usedCount thay vì load toàn bộ redemptions array
-    if (coupon.maxRedemptions && coupon.usedCount >= coupon.maxRedemptions) {
-      return res.status(400).json({
-        success: false,
-        message: "Coupon redemption limit reached",
-      });
-    }
-
-    // Check per-user limit (only for authenticated users)
-    // NOTE: kiểm tra best-effort ở đây; lock thực sự diễn ra trong createOrder
-    if (userId && coupon.perUserLimit) {
-      const userRedemptions = await prisma.couponRedemption.count({
-        where: {
-          couponId: coupon.id,
-          userId: userId,
-          status: "ACTIVE",
-        },
-      });
-
-      if (userRedemptions >= coupon.perUserLimit) {
-        return res.status(400).json({
-          success: false,
-          message: "You have reached the redemption limit for this coupon",
-        });
-      }
-    }
-
-    // Check minimum subtotal
-    const totals = calculateCartTotals(cart.items);
-    if (coupon.minSubtotal && totals.subtotal < coupon.minSubtotal) {
-      return res.status(400).json({
-        success: false,
-        message: `Minimum order amount of ${coupon.minSubtotal} ${cart.currency} required`,
-      });
-    }
-
-    // Apply coupon
-    await prisma.cart.update({
-      where: { id: cart.id },
-      data: { couponId: coupon.id },
-    });
-
-    const updatedCart = await getOrCreateCart(userId, guestToken);
 
     res.status(200).json({
       success: true,
       message: "Coupon applied successfully",
-      cart: formatCartResponse(updatedCart),
+      cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {
     console.error("Error applying coupon:", error);
@@ -235,19 +146,23 @@ export async function removeCoupon(req, res) {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
 
-    const cart = await getOrCreateCart(userId, guestToken);
-
-    await prisma.cart.update({
-      where: { id: cart.id },
-      data: { couponId: null },
+    const result = await removeCouponFromCart({
+      userId,
+      guestToken,
+      requireExistingCoupon: false,
     });
 
-    const updatedCart = await getOrCreateCart(userId, guestToken);
+    if (!result.ok) {
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    }
 
     res.status(200).json({
       success: true,
       message: "Coupon removed",
-      cart: formatCartResponse(updatedCart),
+      cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {
     console.error("Error removing coupon:", error);

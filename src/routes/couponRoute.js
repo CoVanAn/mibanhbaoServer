@@ -25,32 +25,9 @@ import {
   applyCouponSchema,
   couponFilterSchema,
 } from "../schemas/coupon.schema.js";
-import jwt from "jsonwebtoken";
+import optionalAuth from "../middleware/optionalAuth.js";
 
 const couponRouter = express.Router();
-
-// Optional auth middleware (for guests using coupon)
-const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  let token = req.headers.token;
-
-  if (
-    authHeader &&
-    typeof authHeader === "string" &&
-    authHeader.startsWith("Bearer ")
-  ) {
-    token = authHeader.substring(7);
-  }
-
-  if (token) {
-    try {
-      req.user = jwt.verify(token, process.env.JWT_SECRET);
-    } catch {
-      // invalid token – continue as guest
-    }
-  }
-  next();
-};
 
 // ─────────────────────────────────────────────
 // User / Guest routes – coupon interaction

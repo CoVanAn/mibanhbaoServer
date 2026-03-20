@@ -7,18 +7,12 @@ import prisma from "../../config/prisma.js";
  * @returns {Promise<Object>} Cart object with items
  */
 export async function getOrCreateCart(userId, guestToken) {
-  console.log("=== GET OR CREATE CART DEBUG ===");
-  console.log("userId:", userId);
-  console.log("guestToken:", guestToken);
-
   if (!userId && !guestToken) {
     throw new Error("Either userId or guestToken must be provided");
   }
 
   // Auto-merge if both userId and guestToken present
   if (userId && guestToken) {
-    console.log("Both userId and guestToken present - checking for merge");
-
     // Check if guest cart exists with items
     const guestCart = await prisma.cart.findFirst({
       where: { guestToken },
@@ -26,19 +20,13 @@ export async function getOrCreateCart(userId, guestToken) {
     });
 
     if (guestCart && guestCart.items.length > 0) {
-      console.log(
-        `Found guest cart ${guestCart.id} with ${guestCart.items.length} items - merging...`,
-      );
       // Merge and return the merged cart
       return await mergeGuestCartToUser(userId, guestToken);
     }
-
-    console.log("No guest cart to merge, proceeding with user cart");
   }
 
   // Find existing cart
   const whereClause = userId ? { userId } : { guestToken };
-  console.log("Finding cart with where clause:", whereClause);
 
   let cart = await prisma.cart.findFirst({
     where: whereClause,
@@ -77,11 +65,6 @@ export async function getOrCreateCart(userId, guestToken) {
       coupon: true,
     },
   });
-
-  console.log(
-    "Found cart:",
-    cart ? `ID ${cart.id} with ${cart.items?.length || 0} items` : "null",
-  );
 
   // Create new cart if doesn't exist
   if (!cart) {

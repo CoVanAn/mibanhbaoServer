@@ -1,16 +1,16 @@
 import orderService from "../../services/order.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message, errors: error.errors });
-  }
-  console.error(error);
-  return res
-    .status(500)
-    .json({ success: false, message: "Server error", error: error.message });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Server error",
+  includeOperationalErrors: true,
+  includeOperationalDetails: true,
+  includeErrorDetails: true,
+});
+
+const isAdminOrStaff = (user) =>
+  user?.role === "ADMIN" || user?.role === "STAFF";
 
 /**
  * Valid status transitions
@@ -40,9 +40,14 @@ export function canTransitionStatus(currentStatus, newStatus) {
  */
 export async function updateOrderStatus(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const isAdmin = isAdminOrStaff(req.user);
     const { status, reason } = req.body;
 
     const order = await orderService.updateOrderStatus(
@@ -69,9 +74,14 @@ export async function updateOrderStatus(req, res) {
  */
 export async function cancelOrder(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const isAdmin = isAdminOrStaff(req.user);
     const { reason } = req.body;
 
     const order = await orderService.cancelOrder(orderId, userId, isAdmin, {
@@ -94,9 +104,14 @@ export async function cancelOrder(req, res) {
  */
 export async function getOrderStatusHistory(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "ADMIN" || req.user?.role === "STAFF";
+    const isAdmin = isAdminOrStaff(req.user);
 
     const history = await orderService.getOrderStatusHistory(
       orderId,

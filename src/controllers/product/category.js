@@ -1,9 +1,10 @@
 import prisma from "../../config/prisma.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 // POST /api/product/:id/categories
 export const setProductCategories = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
+    const pid = parsePositiveInt(req.params.id);
     if (!pid) return res.status(400).json({ message: "invalid id" });
 
     const { categoryIds } = req.body;
@@ -43,8 +44,8 @@ export const setProductCategories = async (req, res) => {
 // POST /api/product/:id/category/:categoryId
 export const addProductCategory = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const cid = Number(req.params.categoryId);
+    const pid = parsePositiveInt(req.params.id);
+    const cid = parsePositiveInt(req.params.categoryId);
     if (!pid || !cid)
       return res.status(400).json({ message: "invalid id or categoryId" });
 
@@ -78,8 +79,8 @@ export const addProductCategory = async (req, res) => {
 // DELETE /api/product/:id/category/:categoryId
 export const removeProductCategoryLink = async (req, res) => {
   try {
-    const pid = Number(req.params.id);
-    const cid = Number(req.params.categoryId);
+    const pid = parsePositiveInt(req.params.id);
+    const cid = parsePositiveInt(req.params.categoryId);
     if (!pid || !cid)
       return res.status(400).json({ message: "invalid id or categoryId" });
 

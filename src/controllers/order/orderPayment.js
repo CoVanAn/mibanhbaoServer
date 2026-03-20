@@ -1,16 +1,13 @@
 import orderService from "../../services/order.service.js";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message, errors: error.errors });
-  }
-  console.error(error);
-  return res
-    .status(500)
-    .json({ success: false, message: "Server error", error: error.message });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Server error",
+  includeOperationalErrors: true,
+  includeOperationalDetails: true,
+  includeErrorDetails: true,
+});
 
 /**
  * Create payment for order
@@ -18,7 +15,12 @@ const handleError = (res, error) => {
  */
 export async function createPayment(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const { provider, amount, providerRef } = req.body;
 
     const payment = await orderService.createPayment(orderId, {
@@ -43,8 +45,13 @@ export async function createPayment(req, res) {
  */
 export async function updatePaymentStatus(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
-    const paymentId = parseInt(req.params.paymentId, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    const paymentId = parsePositiveInt(req.params.paymentId);
+    if (!orderId || !paymentId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID or payment ID" });
+    }
     const { status, paidAt } = req.body;
 
     const payment = await orderService.updatePaymentStatus(orderId, paymentId, {
@@ -68,7 +75,12 @@ export async function updatePaymentStatus(req, res) {
  */
 export async function getOrderPayments(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
 
     const payments = await orderService.getOrderPayments(orderId);
 
@@ -87,7 +99,12 @@ export async function getOrderPayments(req, res) {
  */
 export async function processRefund(req, res) {
   try {
-    const orderId = parseInt(req.params.id, 10);
+    const orderId = parsePositiveInt(req.params.id);
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order ID" });
+    }
     const userId = req.user?.id;
     const { reason, amount } = req.body;
 

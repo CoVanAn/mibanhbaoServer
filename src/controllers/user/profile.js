@@ -1,15 +1,10 @@
 import userService from "../../services/user.service.js";
-import bcrypt from "bcryptjs";
+import { createControllerErrorHandler } from "../../utils/controllerError.js";
 
-const handleError = (res, error) => {
-  if (error.isOperational) {
-    return res
-      .status(error.statusCode)
-      .json({ success: false, message: error.message });
-  }
-  console.error(error);
-  return res.status(500).json({ success: false, message: "Lỗi server" });
-};
+const handleError = createControllerErrorHandler({
+  defaultMessage: "Lỗi server",
+  includeOperationalErrors: true,
+});
 
 // Get user profile
 export const getUserProfile = async (req, res) => {
