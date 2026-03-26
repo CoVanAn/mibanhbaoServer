@@ -2,7 +2,6 @@ import express from "express";
 import multer from "multer";
 import {
   addProduct,
-  removeProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
@@ -94,27 +93,6 @@ router.patch(
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
   updateProduct,
-);
-// Fallbacks for clients without PATCH
-router.put(
-  "/:id",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  withUpload(upload.any()),
-  updateProduct,
-);
-router.post(
-  "/update/:id",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  withUpload(upload.any()),
-  updateProduct,
-);
-router.post(
-  "/remove",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  removeProduct,
 );
 router.delete(
   "/:id",

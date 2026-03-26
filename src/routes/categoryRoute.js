@@ -34,23 +34,6 @@ categoryRouter.patch(
   validate(updateCategorySchema),
   updateCategory,
 );
-// Fallbacks if client/hosting has trouble with PATCH
-categoryRouter.put(
-  "/:id",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  validateParams(categoryIdSchema),
-  validate(updateCategorySchema),
-  updateCategory,
-);
-categoryRouter.post(
-  "/update/:id",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  validateParams(categoryIdSchema),
-  validate(updateCategorySchema),
-  updateCategory,
-);
 categoryRouter.delete(
   "/:id",
   authMiddleware,

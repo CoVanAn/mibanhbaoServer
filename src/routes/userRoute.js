@@ -63,12 +63,6 @@ router.patch(
   validate(updateProfileSchema),
   updateUserProfile,
 );
-router.put(
-  "/profile",
-  authMiddleware,
-  validate(updateProfileSchema),
-  updateUserProfile,
-); // Fallback
 
 // Password routes
 router.post(
@@ -94,13 +88,6 @@ router.patch(
   validate(addressSchema),
   updateAddress,
 );
-router.put(
-  "/addresses/:id",
-  authMiddleware,
-  validateParams(addressIdSchema),
-  validate(addressSchema),
-  updateAddress,
-); // Fallback
 router.delete(
   "/addresses/:id",
   authMiddleware,

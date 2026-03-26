@@ -16,7 +16,7 @@ function computeSubtotal(items) {
 
 /**
  * Shared business logic for attaching a coupon to current cart.
- * This is reused by both /api/coupon/apply and /api/cart/coupon endpoints.
+ * This is reused by /api/cart/coupon endpoint.
  */
 export async function applyCouponToCart({
   code,
@@ -71,7 +71,7 @@ export async function applyCouponToCart({
 
 /**
  * Shared business logic for removing coupon from current cart.
- * This is reused by both /api/coupon/remove and /api/cart/coupon endpoints.
+ * This is reused by /api/cart/coupon endpoint.
  */
 export async function removeCouponFromCart({
   userId = null,
@@ -120,6 +120,10 @@ export async function validateCouponCode(req, res) {
   try {
     const { code, subtotal = 0 } = req.body;
     const userId = req.user?.id ?? null;
+    const mergedMessages = {
+      couponNotFound: "Mã giảm giá không tồn tại",
+      couponValid: "Mã giảm giá hợp lệ",
+    };
 
     const coupon = await prisma.coupon.findUnique({ where: { code } });
     if (!coupon) {
@@ -144,73 +148,6 @@ export async function validateCouponCode(req, res) {
     });
   } catch (err) {
     console.error("Lỗi khi xác thực mã giảm giá:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
-  }
-}
-
-/**
- * POST /api/coupon/apply
- * Apply a coupon code to the current cart.
- * Body: { code: string }
- */
-export async function applyCoupon(req, res) {
-  try {
-    const { code } = req.body;
-    const userId = req.user?.id ?? null;
-    const guestToken = req.cookies?.guestToken ?? req.body.guestToken ?? null;
-    const result = await applyCouponToCart({ code, userId, guestToken });
-
-    if (!result.ok) {
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    }
-
-    return res.json({
-      success: true,
-      message: "Coupon applied",
-      data: {
-        code: result.coupon.code,
-        type: result.coupon.type,
-        value: result.coupon.value,
-        discountAmount: result.discount,
-        subtotal: result.subtotal,
-        total: result.total,
-      },
-    });
-  } catch (err) {
-    console.error("applyCoupon error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
-  }
-}
-
-/**
- * DELETE /api/coupon/remove
- * Remove the applied coupon from the current cart.
- */
-export async function removeCoupon(req, res) {
-  try {
-    const userId = req.user?.id ?? null;
-    const guestToken = req.cookies?.guestToken ?? req.body?.guestToken ?? null;
-    const result = await removeCouponFromCart({
-      userId,
-      guestToken,
-      requireExistingCoupon: true,
-    });
-
-    if (!result.ok) {
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    }
-
-    return res.json({ success: true, message: "Mã giảm giá đã được loại bỏ khỏi giỏ hàng" });
-  } catch (err) {
-    console.error("Lỗi khi loại bỏ mã giảm giá:", err);
     return res
       .status(500)
       .json({ success: false, message: "Lỗi máy chủ nội bộ" });

@@ -7,8 +7,6 @@ import {
   deleteCoupon,
   getCouponRedemptions,
   validateCouponCode,
-  applyCoupon,
-  removeCoupon,
 } from "../controllers/coupon/index.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
@@ -22,7 +20,6 @@ import {
   updateCouponSchema,
   couponIdSchema,
   validateCouponSchema,
-  applyCouponSchema,
   couponFilterSchema,
 } from "../schemas/coupon.schema.js";
 import optionalAuth from "../middleware/optionalAuth.js";
@@ -40,17 +37,6 @@ couponRouter.post(
   validate(validateCouponSchema),
   validateCouponCode,
 );
-
-// POST /api/coupon/apply – apply coupon to cart
-couponRouter.post(
-  "/apply",
-  optionalAuth,
-  validate(applyCouponSchema),
-  applyCoupon,
-);
-
-// DELETE /api/coupon/remove – remove coupon from cart
-couponRouter.delete("/remove", optionalAuth, removeCoupon);
 
 // ─────────────────────────────────────────────
 // Admin / Staff routes – coupon management
@@ -74,7 +60,7 @@ couponRouter.post(
   createCoupon,
 );
 
-// Get single coupon – must be after /validate, /apply, /remove
+// Get single coupon – must be after /validate
 couponRouter.get(
   "/:id",
   authMiddleware,

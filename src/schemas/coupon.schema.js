@@ -44,13 +44,6 @@ export const validateCouponSchema = z.object({
   subtotal: z.number().nonnegative().optional(),
 });
 
-export const applyCouponSchema = z.object({
-  code: z
-    .string()
-    .min(1)
-    .transform((s) => s.toUpperCase()),
-});
-
 export const couponFilterSchema = z.object({
   page: z
     .string()

@@ -1,5 +1,4 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import {
   createOrder,
   getOrderById,
@@ -16,6 +15,7 @@ import {
   processRefund,
 } from "../controllers/order/index.js";
 import authMiddleware from "../middleware/auth.js";
+import optionalAuth from "../middleware/optionalAuth.js";
 import { requireRoles } from "../middleware/roles.js";
 import {
   validate,
@@ -33,44 +33,6 @@ import {
 } from "../schemas/order.schema.js";
 
 const orderRouter = express.Router();
-
-// Optional auth middleware - allows both guest and authenticated users
-const optionalAuth = (req, res, next) => {
-  console.log("=== OPTIONAL AUTH DEBUG ===");
-  console.log("Headers:", req.headers);
-
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  let token = req.headers.token;
-
-  console.log("Authorization header:", authHeader);
-  console.log("Token header:", token);
-
-  if (
-    authHeader &&
-    typeof authHeader === "string" &&
-    authHeader.startsWith("Bearer ")
-  ) {
-    token = authHeader.substring(7);
-    console.log(
-      "Extracted token from Bearer:",
-      token ? token.substring(0, 20) + "..." : "none",
-    );
-  }
-
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-      console.log("Token verified, user:", decoded.id);
-    } catch (error) {
-      // Token invalid - continue as guest
-      console.log("Token verification failed:", error.message);
-    }
-  } else {
-    console.log("No token found, continuing as guest");
-  }
-  next();
-};
 
 /**
  * Customer Routes
