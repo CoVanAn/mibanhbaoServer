@@ -135,21 +135,21 @@ export class ProductService {
 
     // === VALIDATION ===
     if (!name || !name.trim()) {
-      throw new ValidationError("Product name is required");
+      throw new ValidationError("Tên sản phẩm là bắt buộc");
     }
 
     if (price === undefined || price === null || String(price).trim() === "") {
-      throw new ValidationError("Price is required");
+      throw new ValidationError("Giá là bắt buộc");
     }
 
     const priceStr = String(price).trim();
     if (isNaN(Number(priceStr))) {
-      throw new ValidationError("Price must be a valid number");
+      throw new ValidationError("Giá phải là một số hợp lệ");
     }
 
     const priceAmount = Number(priceStr);
     if (priceAmount < 0) {
-      throw new ValidationError("Price cannot be negative");
+      throw new ValidationError("Giá không thể là số âm");
     }
 
     // === CONTENT VALIDATION & SANITIZATION ===
@@ -158,13 +158,13 @@ export class ProductService {
       const validation = validateProductContent(content);
       if (!validation.isValid) {
         throw new ValidationError(
-          `Content validation failed: ${validation.errors.join(", ")}`,
+          `Nội dung không hợp lệ: ${validation.errors.join(", ")}`,
         );
       }
 
       sanitizedContent = sanitizeProductContent(content);
       if (!sanitizedContent) {
-        throw new ValidationError("Content sanitization failed");
+        throw new ValidationError("Nội dung không hợp lệ");
       }
     }
 
@@ -181,7 +181,7 @@ export class ProductService {
     ) {
       const cid = Number(categoryId);
       if (Number.isNaN(cid)) {
-        throw new ValidationError("categoryId must be a number");
+        throw new ValidationError("Mã danh mục không hợp lệ");
       }
       finalCategoryIds.push(cid);
     }
@@ -191,7 +191,7 @@ export class ProductService {
       for (const cid of finalCategoryIds) {
         const exists = await productRepository.categoryExists(cid);
         if (!exists) {
-          throw new NotFoundError(`Category with ID ${cid}`);
+          throw new NotFoundError(`Danh mục với ID ${cid} không tồn tại`);
         }
       }
     }

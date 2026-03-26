@@ -8,7 +8,7 @@ import prisma from "../../config/prisma.js";
  */
 export async function getOrCreateCart(userId, guestToken) {
   if (!userId && !guestToken) {
-    throw new Error("Either userId or guestToken must be provided");
+    throw new Error("ID người dùng hoặc token khách hàng phải được cung cấp");
   }
 
   // Auto-merge if both userId and guestToken present
@@ -210,17 +210,17 @@ export async function validateCartItem(variantId, quantity) {
   });
 
   if (!variant) {
-    return { valid: false, error: "Variant not found" };
+    return { valid: false, error: "Sản phẩm không tồn tại" };
   }
 
   if (!variant.isActive || !variant.product.isActive) {
-    return { valid: false, error: "Product is no longer available" };
+    return { valid: false, error: "Sản phẩm không còn sẵn có" };
   }
 
   if (variant.inventory && variant.inventory.quantity < quantity) {
     return {
       valid: false,
-      error: `Only ${variant.inventory.quantity} items available in stock`,
+      error: `Chỉ còn ${variant.inventory.quantity} sản phẩm trong kho`,
     };
   }
 

@@ -44,7 +44,7 @@ export async function updateOrderStatus(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
@@ -59,7 +59,7 @@ export async function updateOrderStatus(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: `Order status updated to ${status}`,
+      message: `Trạng thái đơn hàng đã được cập nhật thành ${status}`,
       order,
       allowedTransitions: STATUS_TRANSITIONS[order.status],
     });
@@ -78,7 +78,7 @@ export async function cancelOrder(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
@@ -90,7 +90,7 @@ export async function cancelOrder(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Order canceled successfully",
+      message: "Hủy đơn hàng thành công",
       order,
     });
   } catch (error) {
@@ -108,7 +108,7 @@ export async function getOrderStatusHistory(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);

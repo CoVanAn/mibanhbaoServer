@@ -38,10 +38,10 @@ export async function getCart(req, res) {
       cart: formatCartResponse(cart),
     });
   } catch (error) {
-    console.error("Error fetching cart:", error);
+    console.error("Lỗi khi fetch giỏ hàng:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch cart",
+      message: "Lỗi máy chủ nội bộ",
       error: error.message,
     });
   }

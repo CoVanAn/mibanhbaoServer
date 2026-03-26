@@ -20,14 +20,14 @@ export async function addItemToCart(req, res) {
     if (!variantId || !productId) {
       return res.status(400).json({
         success: false,
-        message: "variantId and productId are required",
+        message: "ID biến thể và sản phẩm là bắt buộc",
       });
     }
 
     if (quantity < 1) {
       return res.status(400).json({
         success: false,
-        message: "Quantity must be at least 1",
+        message: "Số lượng phải ít nhất là 1",
       });
     }
 
@@ -120,7 +120,7 @@ export async function updateCartItem(req, res) {
     if (!quantity || quantity < 0) {
       return res.status(400).json({
         success: false,
-        message: "Valid quantity is required",
+        message: "Số lượng hợp lệ là bắt buộc",
       });
     }
 
@@ -138,7 +138,7 @@ export async function updateCartItem(req, res) {
     if (!item) {
       return res.status(404).json({
         success: false,
-        message: "Cart item not found",
+        message: "Mặt hàng trong giỏ hàng không tồn tại",
       });
     }
 
@@ -151,7 +151,7 @@ export async function updateCartItem(req, res) {
       const updatedCart = await getOrCreateCart(userId, guestToken);
       return res.status(200).json({
         success: true,
-        message: "Item removed from cart",
+        message: "Xóa mặt hàng khỏi giỏ hàng",
         cart: formatCartResponse(updatedCart),
       });
     }
@@ -178,14 +178,14 @@ export async function updateCartItem(req, res) {
 
     res.status(200).json({
       success: true,
-      message: "Cart item updated",
+      message: "Cập nhật mặt hàng trong giỏ hàng",
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
     console.error("Error updating cart item:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update cart item",
+      message: "Lỗi máy chủ nội bộ",
       error: error.message,
     });
   }
@@ -215,7 +215,7 @@ export async function removeCartItem(req, res) {
     if (!item) {
       return res.status(404).json({
         success: false,
-        message: "Cart item not found",
+        message: "Mặt hàng trong giỏ hàng không tồn tại",
       });
     }
 
@@ -227,14 +227,14 @@ export async function removeCartItem(req, res) {
 
     res.status(200).json({
       success: true,
-      message: "Item removed from cart",
+      message: "Xóa mặt hàng khỏi giỏ hàng",
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
     console.error("Error removing cart item:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to remove cart item",
+      message: "Lỗi máy chủ nội bộ",
       error: error.message,
     });
   }
@@ -259,14 +259,14 @@ export async function clearCart(req, res) {
 
     res.status(200).json({
       success: true,
-      message: "Cart cleared",
+      message: "Giỏ hàng đã được làm trống",
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
     console.error("Error clearing cart:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to clear cart",
+      message: "Lỗi máy chủ nội bộ",
       error: error.message,
     });
   }

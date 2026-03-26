@@ -357,7 +357,7 @@ export class UserService {
         const oldPublicId = this._getPublicIdFromUrl(user.avatar);
         if (oldPublicId) await cloudinary.uploader.destroy(oldPublicId);
       } catch (cleanupError) {
-        console.warn("Failed to delete old avatar:", cleanupError);
+        console.warn("Không thể xóa avatar cũ:", cleanupError);
       }
     }
 
@@ -389,7 +389,7 @@ export class UserService {
       const publicId = this._getPublicIdFromUrl(user.avatar);
       if (publicId) await cloudinary.uploader.destroy(publicId);
     } catch (cleanupError) {
-      console.warn("Failed to delete avatar from Cloudinary:", cleanupError);
+      console.warn("Không thể xóa avatar từ Cloudinary:", cleanupError);
     }
 
     return updatedUser;

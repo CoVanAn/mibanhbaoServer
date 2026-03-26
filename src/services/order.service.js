@@ -379,7 +379,7 @@ export class OrderService {
           });
           if (userActiveRedemptions >= coupon.perUserLimit) {
             throw new BadRequestError(
-              "You have reached the redemption limit for this coupon",
+              "Bạn đã sử dụng mã giảm giá này quá số lần cho phép",
             );
           }
         }
@@ -394,7 +394,7 @@ export class OrderService {
 
         if (incrementResult === 0) {
           throw new BadRequestError(
-            "Coupon is no longer available or has reached its redemption limit",
+            "Mã giảm giá không khả dụng",
           );
         }
 
@@ -721,7 +721,7 @@ export class OrderService {
 
     if (!isAdmin && !["PENDING", "CONFIRMED"].includes(order.status)) {
       throw new BadRequestError(
-        "You can only cancel pending or confirmed orders",
+        'Chỉ hủy được đơn hàng khi ở trạng thái "Chờ xác nhận" hoặc "Đã xác nhận"',
       );
     }
 
@@ -847,7 +847,7 @@ export class OrderService {
     if (!payment) throw new NotFoundError("Payment");
 
     if (payment.orderId !== orderId) {
-      throw new BadRequestError("Payment does not belong to this order");
+      throw new BadRequestError("Khoản thanh toán không thuộc về đơn hàng này");
     }
 
     const updatedPayment = await prisma.payment.update({
@@ -926,13 +926,13 @@ export class OrderService {
 
     if (order.status !== "CANCELED" && order.status !== "COMPLETED") {
       throw new BadRequestError(
-        "Only canceled or completed orders can be refunded",
+        "Chỉ có thể hoàn tiền cho đơn hàng đã bị hủy hoặc đã hoàn thành",
       );
     }
 
     const paidPayment = order.payments.find((p) => p.status === "PAID");
     if (!paidPayment) {
-      throw new BadRequestError("No paid payment found for this order");
+      throw new BadRequestError("Không tìm thấy khoản thanh toán đã được thanh toán để hoàn tiền");
     }
 
     const refundAmount = amount || paidPayment.amount;

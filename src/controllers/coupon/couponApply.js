@@ -25,8 +25,8 @@ export async function applyCouponToCart({
   messages = {},
 }) {
   const mergedMessages = {
-    couponNotFound: "Coupon not found",
-    cartEmpty: "Cart is empty",
+    couponNotFound: "Mã giảm giá không tồn tại",
+    cartEmpty: "Giỏ hàng trống",
     ...messages,
   };
 
@@ -80,8 +80,8 @@ export async function removeCouponFromCart({
   messages = {},
 }) {
   const mergedMessages = {
-    cartNotFound: "Cart not found",
-    noCouponApplied: "No coupon applied to cart",
+    cartNotFound: "Giỏ hàng không tồn tại",
+    noCouponApplied: "Không có mã giảm giá nào được áp dụng",
     ...messages,
   };
 
@@ -125,14 +125,14 @@ export async function validateCouponCode(req, res) {
     if (!coupon) {
       return res
         .status(404)
-        .json({ success: false, message: "Coupon not found" });
+        .json({ success: false, message: mergedMessages.couponNotFound });
     }
 
     const result = await validateCoupon(coupon, subtotal, userId);
 
     return res.json({
       success: result.valid,
-      message: result.message ?? "Coupon is valid",
+      message: result.message ?? mergedMessages.couponValid,
       data: result.valid
         ? {
             code: coupon.code,
@@ -143,10 +143,10 @@ export async function validateCouponCode(req, res) {
         : null,
     });
   } catch (err) {
-    console.error("validateCouponCode error:", err);
+    console.error("Lỗi khi xác thực mã giảm giá:", err);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -184,7 +184,7 @@ export async function applyCoupon(req, res) {
     console.error("applyCoupon error:", err);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -208,11 +208,11 @@ export async function removeCoupon(req, res) {
         .json({ success: false, message: result.message });
     }
 
-    return res.json({ success: true, message: "Coupon removed from cart" });
+    return res.json({ success: true, message: "Mã giảm giá đã được loại bỏ khỏi giỏ hàng" });
   } catch (err) {
-    console.error("removeCoupon error:", err);
+    console.error("Lỗi khi loại bỏ mã giảm giá:", err);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 }

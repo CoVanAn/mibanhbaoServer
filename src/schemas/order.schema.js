@@ -93,3 +93,9 @@ export const orderFilterSchema = z.object({
 export const cancelOrderSchema = z.object({
   reason: z.string().min(1, "Vui lòng nhập lý do hủy").max(500),
 });
+
+// Refund Order Schema
+export const refundOrderSchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+  amount: z.coerce.number().positive().optional(),
+});

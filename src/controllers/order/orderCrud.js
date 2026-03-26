@@ -34,7 +34,7 @@ export async function createOrder(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: "Order created successfully",
+      message: "Đơn hàng đã được tạo thành công",
       order,
     });
   } catch (error) {
@@ -52,7 +52,7 @@ export async function getOrderById(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
@@ -143,7 +143,7 @@ export async function updateOrderNote(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
@@ -156,7 +156,7 @@ export async function updateOrderNote(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Order note updated",
+      message: "Ghi chú đơn hàng đã được cập nhật",
       order,
     });
   } catch (error) {
@@ -174,7 +174,7 @@ export async function deleteOrder(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const isAdmin = isAdminOrStaff(req.user);
 
@@ -182,7 +182,7 @@ export async function deleteOrder(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Order is canceled and can be archived",
+      message: "Đơn hàng đã được hủy và có thể được lưu trữ",
     });
   } catch (error) {
     return handleError(res, error);

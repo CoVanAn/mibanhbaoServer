@@ -6,7 +6,7 @@ export const addCategory = async (req, res) => {
   try {
     const { name, parentId, position = 0 } = req.body;
     if (!name)
-      return res.status(400).json({ success: false, message: "name required" });
+      return res.status(400).json({ success: false, message: "Tên danh mục là bắt buộc" });
 
     const slug = await uniqueCategorySlug(name);
 
@@ -22,7 +22,7 @@ export const addCategory = async (req, res) => {
     return res.json({ success: true, id: created.id });
   } catch (err) {
     console.error("addCategory(prisma) error:", err);
-    return res.status(500).json({ success: false, message: "Error" });
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 };
 
@@ -37,7 +37,7 @@ export const listCategory = async (req, res) => {
     return res.json(items);
   } catch (err) {
     console.error("listCategory(prisma) error:", err);
-    return res.status(500).json({ message: "error" });
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 };
 
@@ -49,10 +49,10 @@ export const getCategory = async (req, res) => {
       ? { id: Number(idOrSlug) }
       : { slug: String(idOrSlug) };
     const cat = await prisma.category.findFirst({ where });
-    if (!cat) return res.status(404).json({ message: "Not found" });
+    if (!cat) return res.status(404).json({ success: false, message: "Danh mục không tồn tại" });
     return res.json(cat);
   } catch (err) {
     console.error("getCategory error:", err);
-    return res.status(500).json({ message: "error" });
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
   }
 };

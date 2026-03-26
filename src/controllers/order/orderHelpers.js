@@ -94,7 +94,7 @@ export async function snapshotOrderItems(cartItems) {
 
     if (!product || !variant) {
       throw new Error(
-        `Product or variant not found: productId=${item.productId}, variantId=${item.variantId}`,
+        `Sản phẩm hoặc biến thể không tồn tại: productId=${item.productId}, variantId=${item.variantId}`,
       );
     }
 
@@ -126,20 +126,20 @@ export async function validateOrderCreation(cart, method, addressId) {
 
   // Check if cart has items
   if (!cart.items || cart.items.length === 0) {
-    errors.push("Cart is empty");
+    errors.push("Giỏ hàng trống");
     return { valid: false, errors };
   }
 
   // Check address for delivery
   if (method === "DELIVERY") {
     if (!addressId) {
-      errors.push("Delivery address is required");
+      errors.push("Địa chỉ giao hàng là bắt buộc");
     } else {
       const address = await prisma.address.findUnique({
         where: { id: addressId },
       });
       if (!address) {
-        errors.push("Invalid delivery address");
+        errors.push("Địa chỉ giao hàng không hợp lệ");
       }
     }
   }
@@ -151,7 +151,7 @@ export async function validateOrderCreation(cart, method, addressId) {
     });
 
     if (!inventory) {
-      errors.push(`Product variant ${item.variantId} has no inventory record`);
+      errors.push(`Sản phẩm biến thể ${item.variantId} không có bản ghi tồn kho`);
       continue;
     }
 
@@ -161,7 +161,7 @@ export async function validateOrderCreation(cart, method, addressId) {
         include: { product: true },
       });
       errors.push(
-        `Insufficient stock for ${variant.product.name} - ${variant.name}. Available: ${inventory.quantity}, Requested: ${item.quantity}`,
+        `Không đủ hàng cho ${variant.product.name} - ${variant.name}. Có sẵn: ${inventory.quantity}, Yêu cầu: ${item.quantity}`,
       );
     }
 
@@ -171,11 +171,11 @@ export async function validateOrderCreation(cart, method, addressId) {
       include: { product: true },
     });
     if (!variant) {
-      errors.push(`Product variant ${item.variantId} not found`);
+      errors.push(`Sản phẩm biến thể ${item.variantId} không tồn tại`);
       continue;
     } else if (!variant.isActive || !variant.product.isActive) {
       errors.push(
-        `Product ${variant.product.name} - ${variant.name} is no longer available`,
+        `Sản phẩm ${variant.product.name} - ${variant.name} không còn sẵn sàng`,
       );
     }
   }

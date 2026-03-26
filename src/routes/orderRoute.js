@@ -29,6 +29,7 @@ import {
   orderIdSchema,
   orderFilterSchema,
   cancelOrderSchema,
+  refundOrderSchema,
 } from "../schemas/order.schema.js";
 
 const orderRouter = express.Router();
@@ -188,6 +189,7 @@ orderRouter.post(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   validateParams(orderIdSchema),
+  validate(refundOrderSchema),
   processRefund,
 );
 

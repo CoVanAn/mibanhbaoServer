@@ -19,7 +19,7 @@ export async function createPayment(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const { provider, amount, providerRef } = req.body;
 
@@ -50,7 +50,10 @@ export async function updatePaymentStatus(req, res) {
     if (!orderId || !paymentId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID or payment ID" });
+        .json({
+          success: false,
+          message: "ID đơn hàng hoặc ID thanh toán không hợp lệ",
+        });
     }
     const { status, paidAt } = req.body;
 
@@ -79,7 +82,7 @@ export async function getOrderPayments(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
 
     const payments = await orderService.getOrderPayments(orderId);
@@ -103,7 +106,7 @@ export async function processRefund(req, res) {
     if (!orderId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid order ID" });
+        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
     }
     const userId = req.user?.id;
     const { reason, amount } = req.body;
@@ -115,7 +118,7 @@ export async function processRefund(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Refund processed successfully",
+      message: "Hoàn tiền đã được xử lý",
       payment: result,
     });
   } catch (error) {
