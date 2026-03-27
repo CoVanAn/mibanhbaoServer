@@ -4,14 +4,13 @@ import { getCurrentPrice } from "../../utils/priceHelpers.js";
 import {
   getExistingProduct,
   getVariantWithOwnership,
-  parsePositiveId,
+  parsePositiveInt,
 } from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants
 export const createVariant = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    if (!pid) return res.status(400).json({ message: "invalid id" });
+    const pid = req.params.id;
 
     const product = await getExistingProduct(pid);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -47,10 +46,8 @@ export const createVariant = async (req, res) => {
 // PATCH /api/product/:id/variants/:variantId
 export const updateVariant = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    const vid = parsePositiveId(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    const pid = req.params.id;
+    const vid = req.params.variantId;
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -75,10 +72,8 @@ export const updateVariant = async (req, res) => {
 // DELETE /api/product/:id/variants/:variantId
 export const deleteVariant = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    const vid = parsePositiveId(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    const pid = req.params.id;
+    const vid = req.params.variantId;
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -112,8 +107,7 @@ export const deleteVariant = async (req, res) => {
 // GET /api/product/:id/variants
 export const getProductVariants = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    if (!pid) return res.status(400).json({ message: "invalid id" });
+    const pid = req.params.id;
 
     const product = await getExistingProduct(pid);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -151,9 +145,8 @@ export const getProductVariants = async (req, res) => {
 // GET /api/product/:id/variants/:variantId or /api/product/variant/:variantId
 export const getVariant = async (req, res) => {
   try {
-    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
-    const vid = parsePositiveId(req.params.variantId);
-    if (!vid) return res.status(400).json({ message: "invalid variantId" });
+    const pid = req.params.id ? req.params.id : null;
+    const vid = parsePositiveInt(req.params.variantId);
 
     const variantWithDetails = await prisma.productVariant.findUnique({
       where: { id: vid },

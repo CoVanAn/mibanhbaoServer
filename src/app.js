@@ -69,7 +69,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Request logging middleware
-app.use(requestLogger);
+if (process.env.NODE_ENV !== "production") {
+  app.use(requestLogger);
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {

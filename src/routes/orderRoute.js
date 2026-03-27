@@ -8,7 +8,6 @@ import {
   updateOrderStatus,
   cancelOrder,
   getOrderStatusHistory,
-  deleteOrder,
   createPayment,
   updatePaymentStatus,
   getOrderPayments,
@@ -27,6 +26,7 @@ import {
   updateOrderStatusSchema,
   updateOrderNoteSchema,
   orderIdSchema,
+  orderPaymentIdSchema,
   orderFilterSchema,
   cancelOrderSchema,
   refundOrderSchema,
@@ -106,15 +106,6 @@ orderRouter.patch(
   updateOrderNote,
 );
 
-// Delete order (Admin only)
-orderRouter.delete(
-  "/:id",
-  authMiddleware,
-  requireRoles("ADMIN"),
-  validateParams(orderIdSchema),
-  deleteOrder,
-);
-
 /**
  * Payment Routes (Admin/Staff)
  */
@@ -142,6 +133,7 @@ orderRouter.patch(
   "/:id/payment/:paymentId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(orderPaymentIdSchema),
   updatePaymentStatus,
 );
 

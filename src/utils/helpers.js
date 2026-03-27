@@ -37,8 +37,13 @@ export const uniqueSlug = (baseSlug) => {
  * Parse pagination parameters
  */
 export const parsePagination = (query) => {
-  const page = parseInt(query.page) || 1;
-  const limit = Math.min(parseInt(query.limit) || 20, 100); // Max 100
+  const rawPage = Number(query.page);
+  const rawLimit = Number(query.limit);
+
+  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+  const parsedLimit =
+    Number.isInteger(rawLimit) && rawLimit > 0 ? rawLimit : 20;
+  const limit = Math.min(parsedLimit, 100); // Max 100
   const skip = (page - 1) * limit;
 
   return { page, limit, skip };

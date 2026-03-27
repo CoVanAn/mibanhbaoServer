@@ -46,21 +46,36 @@ export const updateOrderNoteSchema = z.object({
 
 // Order ID Param Schema
 export const orderIdSchema = z.object({
-  id: z.string().transform((val) => parseInt(val, 10)),
+  id: z.coerce
+    .number()
+    .int("Order ID must be an integer")
+    .positive("Order ID must be positive"),
+});
+
+export const orderPaymentIdSchema = z.object({
+  id: z.coerce
+    .number()
+    .int("Order ID must be an integer")
+    .positive("Order ID must be positive"),
+  paymentId: z.coerce
+    .number()
+    .int("Payment ID must be an integer")
+    .positive("Payment ID must be positive"),
 });
 
 // Order Filter Schema (for listing)
 export const orderFilterSchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .default("1")
-    .transform((val) => parseInt(val, 10)),
-  limit: z
-    .string()
-    .optional()
-    .default("20")
-    .transform((val) => parseInt(val, 10)),
+  page: z.coerce
+    .number()
+    .int("Page must be an integer")
+    .positive("Page must be greater than 0")
+    .default(1),
+  limit: z.coerce
+    .number()
+    .int("Limit must be an integer")
+    .positive("Limit must be greater than 0")
+    .max(100, "Limit cannot exceed 100")
+    .default(20),
   status: z
     .enum([
       "PENDING",
@@ -74,10 +89,11 @@ export const orderFilterSchema = z.object({
     ])
     .optional(),
   method: z.enum(["DELIVERY", "PICKUP"]).optional(),
-  userId: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseInt(val, 10) : undefined)),
+  userId: z.coerce
+    .number()
+    .int("User ID must be an integer")
+    .positive("User ID must be positive")
+    .optional(),
   startDate: z
     .string()
     .optional()

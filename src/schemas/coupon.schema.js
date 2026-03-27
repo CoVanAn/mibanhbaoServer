@@ -3,7 +3,10 @@ import { z } from "zod";
 const promotionTypeEnum = z.enum(["PERCENT", "FIXED"]);
 
 const idSchema = z.object({
-  id: z.string().transform((v) => parseInt(v, 10)),
+  id: z.coerce
+    .number()
+    .int("Coupon ID must be an integer")
+    .positive("Coupon ID must be positive"),
 });
 
 export const createCouponSchema = z.object({
@@ -45,16 +48,17 @@ export const validateCouponSchema = z.object({
 });
 
 export const couponFilterSchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .default("1")
-    .transform((v) => parseInt(v, 10)),
-  limit: z
-    .string()
-    .optional()
-    .default("20")
-    .transform((v) => parseInt(v, 10)),
+  page: z.coerce
+    .number()
+    .int("Page must be an integer")
+    .positive("Page must be greater than 0")
+    .default(1),
+  limit: z.coerce
+    .number()
+    .int("Limit must be an integer")
+    .positive("Limit must be greater than 0")
+    .max(100, "Limit cannot exceed 100")
+    .default(20),
   isActive: z
     .string()
     .optional()

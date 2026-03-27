@@ -2,9 +2,8 @@ import express from "express";
 import passport from "../middleware/googleAuth.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/prisma.js";
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Helper function to generate JWT (Access Token - 15 minutes)

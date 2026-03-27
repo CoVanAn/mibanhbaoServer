@@ -1,12 +1,10 @@
 import prisma from "../../config/prisma.js";
 import cloudinary from "../../config/cloudinary.js";
-import { parsePositiveInt } from "../../utils/id.js";
 
 // POST /api/product/:id/media
 export const addProductMedia = async (req, res) => {
   try {
-    const pid = parsePositiveInt(req.params.id);
-    if (!pid) return res.status(400).json({ message: "invalid id" });
+    const pid = req.params.id;
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -66,10 +64,8 @@ export const addProductMedia = async (req, res) => {
 // DELETE /api/product/:id/media/:mediaId
 export const deleteProductMedia = async (req, res) => {
   try {
-    const pid = parsePositiveInt(req.params.id);
-    const mid = parsePositiveInt(req.params.mediaId);
-    if (!pid || !mid)
-      return res.status(400).json({ message: "invalid id or mediaId" });
+    const pid = req.params.id;
+    const mid = req.params.mediaId;
 
     const media = await prisma.productMedia.findUnique({ where: { id: mid } });
     if (!media || media.productId !== pid) {
@@ -103,8 +99,7 @@ export const deleteProductMedia = async (req, res) => {
 // PATCH /api/product/:id/media/reorder
 export const reorderProductMedia = async (req, res) => {
   try {
-    const pid = parsePositiveInt(req.params.id);
-    if (!pid) return res.status(400).json({ message: "invalid id" });
+    const pid = req.params.id;
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -152,10 +147,8 @@ export const reorderProductMedia = async (req, res) => {
 // PATCH /api/product/:id/media/:mediaId
 export const updateProductMedia = async (req, res) => {
   try {
-    const pid = parsePositiveInt(req.params.id);
-    const mid = parsePositiveInt(req.params.mediaId);
-    if (!pid || !mid)
-      return res.status(400).json({ message: "invalid id or mediaId" });
+    const pid = req.params.id;
+    const mid = req.params.mediaId;
 
     const media = await prisma.productMedia.findUnique({ where: { id: mid } });
     if (!media || media.productId !== pid) {

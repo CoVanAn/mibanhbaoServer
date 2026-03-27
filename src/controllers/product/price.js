@@ -6,18 +6,13 @@ import {
   setPermanentPrice,
   setScheduledPrice,
 } from "../../utils/priceHelpers.js";
-import {
-  getVariantWithOwnership,
-  parsePositiveId,
-} from "./productControllerHelpers.js";
+import { getVariantWithOwnership } from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
 export const setVariantPrice = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    const vid = parsePositiveId(req.params.variantId);
-    if (!pid || !vid)
-      return res.status(400).json({ message: "invalid id or variantId" });
+    const pid = req.params.id;
+    const vid = req.params.variantId;
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -57,16 +52,11 @@ export const setVariantPrice = async (req, res) => {
 };
 
 // GET /api/product/:id/variants/:variantId/prices
-// GET /api/product/variant/:variantId/prices
 export const getVariantPricesController = async (req, res) => {
   try {
-    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
-    const vid = parsePositiveId(req.params.variantId);
+    const pid = req.params.id;
+    const vid = req.params.variantId;
     const { includeInactive } = req.query;
-
-    if (!vid) {
-      return res.status(400).json({ message: "invalid variantId" });
-    }
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -91,15 +81,9 @@ export const getVariantPricesController = async (req, res) => {
 // PATCH /api/product/:id/variants/:variantId/price/:priceId
 export const updateVariantPrice = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    const vid = parsePositiveId(req.params.variantId);
-    const priceId = parsePositiveId(req.params.priceId);
-
-    if (!pid || !vid || !priceId) {
-      return res
-        .status(400)
-        .json({ message: "invalid id, variantId, or priceId" });
-    }
+    const pid = req.params.id;
+    const vid = req.params.variantId;
+    const priceId = req.params.priceId;
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -172,15 +156,9 @@ export const updateVariantPrice = async (req, res) => {
 // DELETE /api/product/:id/variants/:variantId/price/:priceId
 export const deleteVariantPrice = async (req, res) => {
   try {
-    const pid = parsePositiveId(req.params.id);
-    const vid = parsePositiveId(req.params.variantId);
-    const priceId = parsePositiveId(req.params.priceId);
-
-    if (!pid || !vid || !priceId) {
-      return res
-        .status(400)
-        .json({ message: "invalid id, variantId, or priceId" });
-    }
+    const pid = req.params.id;
+    const vid = req.params.variantId;
+    const priceId = req.params.priceId;
 
     // Kiểm tra variant tồn tại
     const { variant } = await getVariantWithOwnership(vid, pid);

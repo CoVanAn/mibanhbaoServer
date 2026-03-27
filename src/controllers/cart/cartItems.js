@@ -4,6 +4,7 @@ import {
   validateCartItem,
   formatCartResponse,
 } from "./cartHelpers.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 /**
  * Add item to cart
@@ -116,11 +117,19 @@ export async function updateCartItem(req, res) {
     const guestToken = req.cookies.guestToken || req.body.guestToken;
     const { itemId } = req.params;
     const { quantity } = req.body;
+    const parsedItemId = parsePositiveInt(itemId);
 
     if (!quantity || quantity < 0) {
       return res.status(400).json({
         success: false,
         message: "Số lượng hợp lệ là bắt buộc",
+      });
+    }
+
+    if (!parsedItemId) {
+      return res.status(400).json({
+        success: false,
+        message: "ID mặt hàng không hợp lệ",
       });
     }
 
@@ -130,7 +139,7 @@ export async function updateCartItem(req, res) {
     // Find item
     const item = await prisma.cartItem.findFirst({
       where: {
-        id: parseInt(itemId),
+        id: parsedItemId,
         cartId: cart.id,
       },
     });
@@ -200,6 +209,14 @@ export async function removeCartItem(req, res) {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
     const { itemId } = req.params;
+    const parsedItemId = parsePositiveInt(itemId);
+
+    if (!parsedItemId) {
+      return res.status(400).json({
+        success: false,
+        message: "ID mặt hàng không hợp lệ",
+      });
+    }
 
     // Get cart
     const cart = await getOrCreateCart(userId, guestToken);
@@ -207,7 +224,7 @@ export async function removeCartItem(req, res) {
     // Find and delete item
     const item = await prisma.cartItem.findFirst({
       where: {
-        id: parseInt(itemId),
+        id: parsedItemId,
         cartId: cart.id,
       },
     });

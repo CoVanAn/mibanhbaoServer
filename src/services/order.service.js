@@ -393,9 +393,7 @@ export class OrderService {
         `;
 
         if (incrementResult === 0) {
-          throw new BadRequestError(
-            "Mã giảm giá không khả dụng",
-          );
+          throw new BadRequestError("Mã giảm giá không khả dụng");
         }
 
         await tx.couponRedemption.create({
@@ -484,7 +482,7 @@ export class OrderService {
         },
         orderBy: { createdAt: "desc" },
         skip,
-        take: parseInt(limit, 10),
+        take: limit,
       }),
       prisma.order.count({ where }),
     ]);
@@ -492,8 +490,8 @@ export class OrderService {
     return {
       orders: orders.map((o) => this.formatOrderResponse(o)),
       pagination: {
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
+        page,
+        limit,
         total,
         totalPages: Math.ceil(total / limit),
       },
@@ -516,7 +514,7 @@ export class OrderService {
     const where = {
       ...(status && { status }),
       ...(method && { method }),
-      ...(userId && { userId: parseInt(userId, 10) }),
+      ...(userId && { userId }),
       ...(startDate &&
         endDate && {
           createdAt: { gte: new Date(startDate), lte: new Date(endDate) },
@@ -549,7 +547,7 @@ export class OrderService {
         },
         orderBy: { createdAt: "desc" },
         skip,
-        take: parseInt(limit, 10),
+        take: limit,
       }),
       prisma.order.count({ where }),
     ]);
@@ -557,8 +555,8 @@ export class OrderService {
     return {
       orders: orders.map((o) => this.formatOrderResponse(o)),
       pagination: {
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
+        page,
+        limit,
         total,
         totalPages: Math.ceil(total / limit),
       },
@@ -609,15 +607,6 @@ export class OrderService {
     emitOrderNoteUpdated({ order: response, changedByUserId: userId });
 
     return response;
-  }
-
-  async deleteOrder(orderId, isAdmin) {
-    if (!isAdmin) throw new AuthorizationError("Admin access required");
-
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) throw new NotFoundError("Order");
-
-    await prisma.order.delete({ where: { id: orderId } });
   }
 
   // ──────────── Status Management ────────────
@@ -932,7 +921,9 @@ export class OrderService {
 
     const paidPayment = order.payments.find((p) => p.status === "PAID");
     if (!paidPayment) {
-      throw new BadRequestError("Không tìm thấy khoản thanh toán đã được thanh toán để hoàn tiền");
+      throw new BadRequestError(
+        "Không tìm thấy khoản thanh toán đã được thanh toán để hoàn tiền",
+      );
     }
 
     const refundAmount = amount || paidPayment.amount;

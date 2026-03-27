@@ -6,58 +6,6 @@
 import { z } from "zod";
 
 /**
- * Schema for creating a product
- * POST /api/product/add
- */
-export const createProductSchema = z.object({
-  name: z
-    .string({ required_error: "Product name is required" })
-    .trim()
-    .min(2, "Product name must be at least 2 characters")
-    .max(200, "Product name cannot exceed 200 characters"),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    )
-    .optional(),
-  description: z.string().trim().max(500).optional(),
-  content: z.string().optional(),
-  isActive: z.boolean().default(true),
-  isFeatured: z.boolean().default(false),
-  categoryIds: z.array(z.number().int().positive()).min(1).optional(),
-});
-
-/**
- * Schema for updating a product
- * PATCH /api/product/:id
- */
-export const updateProductSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Product name must be at least 2 characters")
-    .max(200, "Product name cannot exceed 200 characters")
-    .optional(),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    )
-    .optional(),
-  description: z.string().trim().max(500).optional(),
-  content: z.string().optional(),
-  isActive: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-});
-
-/**
  * Schema for creating a product variant
  * POST /api/product/:id/variants
  * Note: productId comes from URL params, not body
@@ -153,44 +101,21 @@ export const setPriceSchema = z
  * Schema for updating variant inventory
  * PATCH /api/product/:id/variants/:variantId/inventory
  */
-export const updateInventorySchema = z.object({
-  quantity: z
-    .number({ required_error: "Quantity is required" })
-    .int()
-    .min(0, "Quantity cannot be negative"),
-  safetyStock: z
-    .number()
-    .int()
-    .min(0, "Safety stock cannot be negative")
-    .default(0),
-});
-
-/**
- * Schema for adding product media
- * POST /api/product/:id/media
- */
-export const addMediaSchema = z.object({
-  url: z
-    .string({ required_error: "Media URL is required" })
-    .url("Must be a valid URL"),
-  alt: z.string().trim().optional(),
-  position: z.number().int().min(0).default(0),
-});
-
-/**
- * Schema for reordering product media
- * PUT /api/product/:id/media/reorder
- */
-export const reorderMediaSchema = z.object({
-  mediaOrders: z
-    .array(
-      z.object({
-        id: z.number().int().positive(),
-        position: z.number().int().min(0),
-      }),
-    )
-    .min(1, "At least one media item is required"),
-});
+export const updateInventorySchema = z
+  .object({
+    quantity: z.number().int().min(0, "Quantity cannot be negative").optional(),
+    safetyStock: z
+      .number()
+      .int()
+      .min(0, "Safety stock cannot be negative")
+      .optional(),
+  })
+  .refine(
+    (data) => data.quantity !== undefined || data.safetyStock !== undefined,
+    {
+      message: "quantity or safetyStock required",
+    },
+  );
 
 /**
  * Schema for product ID parameter
@@ -214,17 +139,31 @@ export const variantIdSchema = z.object({
     .positive("Variant ID must be positive"),
 });
 
-/**
- * Schema for product slug parameter
- * Used in routes: /slug/:slug
- */
-export const productSlugSchema = z.object({
-  slug: z
-    .string({ required_error: "Slug is required" })
-    .trim()
-    .toLowerCase()
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    ),
+export const categoryIdSchema = z.object({
+  categoryId: z.coerce
+    .number()
+    .int("Category ID must be an integer")
+    .positive("Category ID must be positive"),
 });
+
+export const mediaIdSchema = z.object({
+  mediaId: z.coerce
+    .number()
+    .int("Media ID must be an integer")
+    .positive("Media ID must be positive"),
+});
+
+export const priceIdSchema = z.object({
+  priceId: z.coerce
+    .number()
+    .int("Price ID must be an integer")
+    .positive("Price ID must be positive"),
+});
+
+export const productVariantParamsSchema =
+  productIdSchema.merge(variantIdSchema);
+export const productCategoryParamsSchema =
+  productIdSchema.merge(categoryIdSchema);
+export const productMediaParamsSchema = productIdSchema.merge(mediaIdSchema);
+export const productVariantPriceParamsSchema =
+  productVariantParamsSchema.merge(priceIdSchema);

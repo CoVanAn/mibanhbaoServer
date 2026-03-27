@@ -1,6 +1,5 @@
 import orderService from "../../services/order.service.js";
 import { createControllerErrorHandler } from "../../utils/controllerError.js";
-import { parsePositiveInt } from "../../utils/id.js";
 
 const handleError = createControllerErrorHandler({
   defaultMessage: "Server error",
@@ -15,12 +14,7 @@ const handleError = createControllerErrorHandler({
  */
 export async function createPayment(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
+    const orderId = req.params.id;
     const { provider, amount, providerRef } = req.body;
 
     const payment = await orderService.createPayment(orderId, {
@@ -45,16 +39,7 @@ export async function createPayment(req, res) {
  */
 export async function updatePaymentStatus(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    const paymentId = parsePositiveInt(req.params.paymentId);
-    if (!orderId || !paymentId) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "ID đơn hàng hoặc ID thanh toán không hợp lệ",
-        });
-    }
+    const { id: orderId, paymentId } = req.params;
     const { status, paidAt } = req.body;
 
     const payment = await orderService.updatePaymentStatus(orderId, paymentId, {
@@ -78,12 +63,7 @@ export async function updatePaymentStatus(req, res) {
  */
 export async function getOrderPayments(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
+    const orderId = req.params.id;
 
     const payments = await orderService.getOrderPayments(orderId);
 
@@ -102,12 +82,7 @@ export async function getOrderPayments(req, res) {
  */
 export async function processRefund(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
+    const orderId = req.params.id;
     const userId = req.user?.id;
     const { reason, amount } = req.body;
 

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import prisma from "../../config/prisma.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 const employeeSelect = {
   id: true,
@@ -71,8 +72,8 @@ export async function createEmployee(req, res) {
  */
 export async function updateEmployee(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID nhân viên không hợp lệ" });
@@ -155,8 +156,8 @@ export async function updateEmployee(req, res) {
  */
 export async function resetEmployeePassword(req, res) {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
+    const id = parsePositiveInt(req.params.id);
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "ID nhân viên không hợp lệ" });

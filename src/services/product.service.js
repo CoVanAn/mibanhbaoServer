@@ -44,7 +44,7 @@ export class ProductService {
     // Filter by category
     if (categoryId) {
       where.categories = {
-        some: { categoryId: parseInt(categoryId) },
+        some: { categoryId },
       };
     }
 

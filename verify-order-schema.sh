@@ -196,7 +196,6 @@ cat << 'EOF'
   GET    /api/order/list            (All orders with filters)
   PATCH  /api/order/:id/status      (Update order status)
   PATCH  /api/order/:id/note        (Update notes)
-  DELETE /api/order/:id             (Delete canceled order)
   GET    /api/order/:id/payments    (View payments)
   POST   /api/order/:id/payment     (Create payment)
   PATCH  /api/order/:id/payment/:id (Update payment)

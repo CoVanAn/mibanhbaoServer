@@ -107,6 +107,9 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     const uid = typeof id === "string" ? parseInt(id, 10) : id;
+    if (!Number.isInteger(uid) || uid <= 0) {
+      return done(null, null);
+    }
     const user = await prisma.user.findUnique({ where: { id: uid } });
     done(null, user);
   } catch (err) {

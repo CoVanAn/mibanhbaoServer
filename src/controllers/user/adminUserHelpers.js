@@ -5,8 +5,17 @@ export function isEmployeeRole(role) {
 }
 
 export function getPagingParams(query, defaults = { page: 1, limit: 20 }) {
-  const pageNum = Number.parseInt(query.page || String(defaults.page), 10);
-  const limitNum = Number.parseInt(query.limit || String(defaults.limit), 10);
+  const parsedPage = Number(query.page ?? defaults.page);
+  const parsedLimit = Number(query.limit ?? defaults.limit);
+
+  const pageNum =
+    Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : defaults.page;
+  const limitNum = Math.min(
+    Number.isInteger(parsedLimit) && parsedLimit > 0
+      ? parsedLimit
+      : defaults.limit,
+    100,
+  );
   const skip = (pageNum - 1) * limitNum;
   return { pageNum, limitNum, skip };
 }

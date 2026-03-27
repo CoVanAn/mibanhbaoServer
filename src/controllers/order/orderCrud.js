@@ -12,6 +12,11 @@ const handleError = createControllerErrorHandler({
 const isAdminOrStaff = (user) =>
   user?.role === "ADMIN" || user?.role === "STAFF";
 
+const parsePositiveIntOrDefault = (value, fallback) => {
+  const parsed = parsePositiveInt(value);
+  return parsed ?? fallback;
+};
+
 /**
  * Create new order from cart
  * POST /api/order/create
@@ -48,12 +53,7 @@ export async function createOrder(req, res) {
  */
 export async function getOrderById(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
+    const orderId = req.params.id;
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
 
@@ -76,10 +76,12 @@ export async function getUserOrders(req, res) {
   try {
     const userId = req.user?.id;
     const { page = 1, limit = 10, status } = req.query;
+    const parsedPage = parsePositiveIntOrDefault(page, 1);
+    const parsedLimit = Math.min(parsePositiveIntOrDefault(limit, 10), 100);
 
     const result = await orderService.getUserOrders(userId, {
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
+      page: parsedPage,
+      limit: parsedLimit,
       status,
     });
 
@@ -112,15 +114,18 @@ export async function getAllOrders(req, res) {
     const filters = {
       status,
       method,
-      userId: userId ? parseInt(userId, 10) : undefined,
+      userId: userId ? parsePositiveInt(userId) || undefined : undefined,
       startDate,
       endDate,
       search,
     };
 
+    const parsedPage = parsePositiveIntOrDefault(page, 1);
+    const parsedLimit = Math.min(parsePositiveIntOrDefault(limit, 10), 100);
+
     const result = await orderService.getAllOrders({
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
+      page: parsedPage,
+      limit: parsedLimit,
       ...filters,
     });
 
@@ -139,12 +144,7 @@ export async function getAllOrders(req, res) {
  */
 export async function updateOrderNote(req, res) {
   try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
+    const orderId = req.params.id;
     const userId = req.user?.id;
     const isAdmin = isAdminOrStaff(req.user);
     const { customerNote, internalNote } = req.body;
@@ -158,31 +158,6 @@ export async function updateOrderNote(req, res) {
       success: true,
       message: "Ghi chú đơn hàng đã được cập nhật",
       order,
-    });
-  } catch (error) {
-    return handleError(res, error);
-  }
-}
-
-/**
- * Delete order (Admin only, soft delete by canceling)
- * DELETE /api/order/:id
- */
-export async function deleteOrder(req, res) {
-  try {
-    const orderId = parsePositiveInt(req.params.id);
-    if (!orderId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "ID đơn hàng không hợp lệ" });
-    }
-    const isAdmin = isAdminOrStaff(req.user);
-
-    await orderService.deleteOrder(orderId, isAdmin);
-
-    return res.status(200).json({
-      success: true,
-      message: "Đơn hàng đã được hủy và có thể được lưu trữ",
     });
   } catch (error) {
     return handleError(res, error);

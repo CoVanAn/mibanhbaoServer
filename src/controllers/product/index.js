@@ -5,7 +5,6 @@ import {
   listFeaturedProducts,
   getProduct,
   updateProduct,
-  removeProduct,
   deleteProduct,
 } from "./productCrud.js";
 
@@ -50,7 +49,6 @@ import { slugify, uniqueSlug } from "../../utils/helpers.js";
 // Re-export all functions for named imports
 export {
   addProduct,
-  removeProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
@@ -81,7 +79,6 @@ export {
 // Default export for backward compatibility
 export default {
   addProduct,
-  removeProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,

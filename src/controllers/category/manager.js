@@ -1,10 +1,11 @@
 import prisma from "../../config/prisma.js";
 import { uniqueCategorySlug, validateNoCycle } from "./helpers.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
 // PATCH /api/category/:id
 export const updateCategory = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id);
     if (!id) return res.status(400).json({ message: "invalid id" });
 
     const existing = await prisma.category.findUnique({ where: { id } });
@@ -55,7 +56,7 @@ export const updateCategory = async (req, res) => {
 // DELETE /api/category/:id
 export const removeCategory = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id);
     if (!id) return res.status(400).json({ message: "invalid id" });
 
     // Block delete if category has children

@@ -9,6 +9,11 @@ import {
 } from "../../utils/productFormatters.js";
 import { parsePositiveInt } from "../../utils/id.js";
 
+const parsePositiveIntOrDefault = (value, fallback) => {
+  const parsed = parsePositiveInt(value);
+  return parsed ?? fallback;
+};
+
 // Helper functions moved to utils/productFormatters.js
 
 // POST /api/products (or /api/product/add)
@@ -45,15 +50,15 @@ export const listProducts = async (req, res, next) => {
       includeInactive,
     } = req.query;
 
-    const take = Math.min(Number(limit) || 100, 200);
+    const take = Math.min(parsePositiveIntOrDefault(limit, 100), 200);
     const isActive = String(includeInactive || "") === "1" ? null : true;
 
     // Call service to get products
     const result = await productService.getProducts({
-      page: Number(page),
+      page: parsePositiveIntOrDefault(page, 1),
       limit: take,
       search: search ? search.trim() : "",
-      categoryId: categoryId ? Number(categoryId) : null,
+      categoryId: categoryId ? parsePositiveInt(categoryId) : null,
       isActive,
     });
 
@@ -77,7 +82,7 @@ export const listProducts = async (req, res, next) => {
 export const listFeaturedProducts = async (req, res, next) => {
   try {
     const includeInactive = String(req.query.includeInactive || "") === "1";
-    const limit = Math.min(Number(req.query.limit) || 12, 200);
+    const limit = Math.min(parsePositiveIntOrDefault(req.query.limit, 12), 200);
 
     // Call service to get featured products
     const items = await productService.getFeaturedProducts(
@@ -124,10 +129,7 @@ export const getProduct = async (req, res, next) => {
 // PATCH /api/product/:id
 export const updateProduct = async (req, res, next) => {
   try {
-    const id = parsePositiveInt(req.params.id);
-    if (!id) {
-      return res.status(400).json({ message: "invalid id" });
-    }
+    const id = req.params.id;
 
     // Extract files from request
     const files = Array.isArray(req.files)
@@ -148,28 +150,10 @@ export const updateProduct = async (req, res, next) => {
   }
 };
 
-// POST /api/products/remove
-export const removeProduct = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    const pid = parsePositiveInt(id);
-    if (!pid)
-      return res.status(400).json({ success: false, message: "id required" });
-
-    await prisma.product.delete({ where: { id: pid } });
-
-    return res.json({ success: true, message: "Product removed" });
-  } catch (error) {
-    next(error);
-  }
-};
-
 // DELETE /api/product/:id
 export const deleteProduct = async (req, res, next) => {
   try {
-    const pid = parsePositiveInt(req.params.id);
-    if (!pid)
-      return res.status(400).json({ success: false, message: "invalid id" });
+    const pid = req.params.id;
 
     // Remove from carts so customers can't buy it
     await prisma.cartItem.deleteMany({ where: { productId: pid } });

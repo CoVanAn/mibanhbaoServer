@@ -6,16 +6,17 @@ import { z } from "zod";
 
 // Customer list query params
 export const customerListSchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .default("1")
-    .transform((val) => parseInt(val, 10)),
-  limit: z
-    .string()
-    .optional()
-    .default("20")
-    .transform((val) => parseInt(val, 10)),
+  page: z.coerce
+    .number()
+    .int("Page must be an integer")
+    .positive("Page must be greater than 0")
+    .default(1),
+  limit: z.coerce
+    .number()
+    .int("Limit must be an integer")
+    .positive("Limit must be greater than 0")
+    .max(100, "Limit cannot exceed 100")
+    .default(20),
   search: z.string().optional(), // Search by name, email, phone
   isActive: z
     .string()
@@ -34,10 +35,10 @@ export const customerListSchema = z.object({
 
 // Customer ID param
 export const customerIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^\d+$/, "ID phải là số nguyên dương")
-    .transform((val) => parseInt(val, 10)),
+  id: z.coerce
+    .number()
+    .int("ID phải là số nguyên")
+    .positive("ID phải là số nguyên dương"),
 });
 
 // Toggle customer active status

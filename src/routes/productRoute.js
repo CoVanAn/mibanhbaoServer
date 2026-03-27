@@ -30,16 +30,16 @@ import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
 import { validate, validateParams } from "../middleware/validate.js";
 import {
-  createProductSchema,
-  updateProductSchema,
   createVariantSchema,
   updateVariantSchema,
   setPriceSchema,
   updateInventorySchema,
-  addMediaSchema,
-  reorderMediaSchema,
   productIdSchema,
   variantIdSchema,
+  productVariantParamsSchema,
+  productCategoryParamsSchema,
+  productMediaParamsSchema,
+  productVariantPriceParamsSchema,
 } from "../schemas/product.schema.js";
 
 const router = express.Router();
@@ -91,6 +91,7 @@ router.patch(
   "/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productIdSchema),
   withUpload(upload.any()),
   updateProduct,
 );
@@ -98,6 +99,7 @@ router.delete(
   "/:id",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productIdSchema),
   deleteProduct,
 );
 
@@ -106,18 +108,21 @@ router.put(
   "/:id/categories",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productIdSchema),
   setProductCategories,
 );
 router.post(
   "/:id/categories/:categoryId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productCategoryParamsSchema),
   addProductCategory,
 );
 router.delete(
   "/:id/categories/:categoryId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productCategoryParamsSchema),
   removeProductCategoryLink,
 );
 
@@ -126,6 +131,7 @@ router.post(
   "/:id/media",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productIdSchema),
   withUpload(upload.any()),
   addProductMedia,
 );
@@ -133,18 +139,21 @@ router.delete(
   "/:id/media/:mediaId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productMediaParamsSchema),
   deleteProductMedia,
 );
 router.patch(
   "/:id/media/reorder",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productIdSchema),
   reorderProductMedia,
 );
 router.patch(
   "/:id/media/:mediaId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productMediaParamsSchema),
   updateProductMedia,
 );
 
@@ -154,7 +163,11 @@ router.get(
   validateParams(productIdSchema),
   getProductVariants,
 );
-router.get("/:id/variants/:variantId", getVariant);
+router.get(
+  "/:id/variants/:variantId",
+  validateParams(productVariantParamsSchema),
+  getVariant,
+);
 router.post(
   "/:id/variants",
   authMiddleware,
@@ -167,6 +180,7 @@ router.patch(
   "/:id/variants/:variantId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantParamsSchema),
   validate(updateVariantSchema),
   updateVariant,
 );
@@ -174,6 +188,7 @@ router.delete(
   "/:id/variants/:variantId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantParamsSchema),
   deleteVariant,
 );
 
@@ -182,51 +197,41 @@ router.post(
   "/:id/variants/:variantId/price",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantParamsSchema),
   validate(setPriceSchema),
   setVariantPrice,
 );
-router.get("/:id/variants/:variantId/prices", getVariantPricesController);
+router.get(
+  "/:id/variants/:variantId/prices",
+  validateParams(productVariantParamsSchema),
+  getVariantPricesController,
+);
 router.patch(
   "/:id/variants/:variantId/price/:priceId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantPriceParamsSchema),
   updateVariantPrice,
 );
 router.delete(
   "/:id/variants/:variantId/price/:priceId",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantPriceParamsSchema),
   deleteVariantPrice,
 );
 
-// Price - shorthand for existing variants (alternative)
-router.post(
-  "/variant/:variantId/price",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  validateParams(variantIdSchema),
-  validate(setPriceSchema),
-  setVariantPrice,
-);
-router.patch(
-  "/variant/:variantId/price",
-  authMiddleware,
-  requireRoles("ADMIN", "STAFF"),
-  validateParams(variantIdSchema),
-  updateVariantPrice,
-);
-router.get(
-  "/variant/:variantId/prices",
-  validateParams(variantIdSchema),
-  getVariantPricesController,
-);
-
 // Inventory
-router.get("/:id/variants/:variantId/inventory", getInventory);
+router.get(
+  "/:id/variants/:variantId/inventory",
+  validateParams(productVariantParamsSchema),
+  getInventory,
+);
 router.patch(
   "/:id/variants/:variantId/inventory",
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
+  validateParams(productVariantParamsSchema),
   validate(updateInventorySchema),
   updateInventory,
 );

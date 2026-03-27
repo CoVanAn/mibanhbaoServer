@@ -1,19 +1,15 @@
 import prisma from "../../config/prisma.js";
 import {
   getVariantWithOwnership,
-  parsePositiveId,
+  parsePositiveInt,
 } from "./productControllerHelpers.js";
 
 // GET /api/product/:id/variants/:variantId/inventory
 // GET /api/product/variant/:variantId/inventory
 export const getInventory = async (req, res) => {
   try {
-    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
-    const vid = parsePositiveId(req.params.variantId);
-
-    if (!vid) {
-      return res.status(400).json({ message: "invalid variantId" });
-    }
+    const pid = req.params.id ? req.params.id : null;
+    const vid = parsePositiveInt(req.params.variantId);
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
@@ -37,12 +33,8 @@ export const getInventory = async (req, res) => {
 // PATCH /api/product/variant/:variantId/inventory
 export const updateInventory = async (req, res) => {
   try {
-    const pid = req.params.id ? parsePositiveId(req.params.id) : null;
-    const vid = parsePositiveId(req.params.variantId);
-
-    if (!vid) {
-      return res.status(400).json({ message: "invalid variantId" });
-    }
+    const pid = req.params.id ? req.params.id : null;
+    const vid = parsePositiveInt(req.params.variantId);
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {

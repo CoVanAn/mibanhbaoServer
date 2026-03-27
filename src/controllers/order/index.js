@@ -5,7 +5,6 @@ import {
   getUserOrders,
   getAllOrders,
   updateOrderNote,
-  deleteOrder,
 } from "./orderCrud.js";
 
 // Order status management
@@ -24,18 +23,6 @@ import {
   processRefund,
 } from "./orderPayment.js";
 
-// Helper functions
-import {
-  generateOrderCode,
-  calculateOrderTotals,
-  snapshotOrderItems,
-  validateOrderCreation,
-  reserveInventory,
-  releaseInventory,
-  formatOrderResponse,
-  calculateShippingFee,
-} from "./orderHelpers.js";
-
 // Export all functions
 export {
   // CRUD
@@ -44,7 +31,6 @@ export {
   getUserOrders,
   getAllOrders,
   updateOrderNote,
-  deleteOrder,
   // Status
   updateOrderStatus,
   cancelOrder,
@@ -55,15 +41,6 @@ export {
   updatePaymentStatus,
   getOrderPayments,
   processRefund,
-  // Helpers
-  generateOrderCode,
-  calculateOrderTotals,
-  snapshotOrderItems,
-  validateOrderCreation,
-  reserveInventory,
-  releaseInventory,
-  formatOrderResponse,
-  calculateShippingFee,
 };
 
 // Default export for convenience
@@ -73,7 +50,6 @@ export default {
   getUserOrders,
   getAllOrders,
   updateOrderNote,
-  deleteOrder,
   updateOrderStatus,
   cancelOrder,
   getOrderStatusHistory,

@@ -3,16 +3,17 @@ import { z } from "zod";
 const currentYear = new Date().getUTCFullYear();
 
 export const dashboardOverviewQuerySchema = z.object({
-  year: z
-    .string()
-    .optional()
-    .default(String(currentYear))
-    .transform((value) => Number.parseInt(value, 10)),
-  quarter: z
-    .enum(["1", "2", "3", "4"])
-    .optional()
-    .default("1")
-    .transform((value) => Number.parseInt(value, 10)),
+  year: z.coerce
+    .number()
+    .int("Year must be an integer")
+    .positive("Year must be greater than 0")
+    .default(currentYear),
+  quarter: z.coerce
+    .number()
+    .int("Quarter must be an integer")
+    .min(1, "Quarter must be between 1 and 4")
+    .max(4, "Quarter must be between 1 and 4")
+    .default(1),
 });
 
 export const dashboardDailyQuerySchema = z.object({
@@ -24,19 +25,23 @@ export const dashboardTopProductsQuerySchema = z
   .object({
     startDate: z.string().datetime().optional(),
     endDate: z.string().datetime().optional(),
-    year: z
-      .string()
-      .optional()
-      .transform((value) => (value ? Number.parseInt(value, 10) : undefined)),
-    quarter: z
-      .enum(["1", "2", "3", "4"])
-      .optional()
-      .transform((value) => (value ? Number.parseInt(value, 10) : undefined)),
-    limit: z
-      .string()
-      .optional()
-      .default("5")
-      .transform((value) => Number.parseInt(value, 10)),
+    year: z.coerce
+      .number()
+      .int("Year must be an integer")
+      .positive("Year must be greater than 0")
+      .optional(),
+    quarter: z.coerce
+      .number()
+      .int("Quarter must be an integer")
+      .min(1, "Quarter must be between 1 and 4")
+      .max(4, "Quarter must be between 1 and 4")
+      .optional(),
+    limit: z.coerce
+      .number()
+      .int("Limit must be an integer")
+      .positive("Limit must be greater than 0")
+      .max(100, "Limit cannot exceed 100")
+      .default(5),
   })
   .superRefine((values, ctx) => {
     const hasRange = values.startDate && values.endDate;
@@ -51,9 +56,10 @@ export const dashboardTopProductsQuerySchema = z
   });
 
 export const dashboardLowStockQuerySchema = z.object({
-  limit: z
-    .string()
-    .optional()
-    .default("10")
-    .transform((value) => Number.parseInt(value, 10)),
+  limit: z.coerce
+    .number()
+    .int("Limit must be an integer")
+    .positive("Limit must be greater than 0")
+    .max(100, "Limit cannot exceed 100")
+    .default(10),
 });

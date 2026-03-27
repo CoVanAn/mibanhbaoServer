@@ -280,24 +280,9 @@ Response:
 }
 ```
 
-#### 9. Xóa Order (Admin Only)
-
-```http
-DELETE /api/order/:id
-Authorization: Bearer {admin_token}
-
-Response:
-{
-  "success": true,
-  "message": "Order is canceled and can be archived"
-}
-```
-
-**Note:** Chỉ có thể "xóa" order đã CANCELED
-
 ### Payment Endpoints (Admin/Staff)
 
-#### 10. Xem Payments của Order
+#### 9. Xem Payments của Order
 
 ```http
 GET /api/order/:id/payments
@@ -320,7 +305,7 @@ Response:
 }
 ```
 
-#### 11. Tạo Payment Mới
+#### 10. Tạo Payment Mới
 
 ```http
 POST /api/order/:id/payment

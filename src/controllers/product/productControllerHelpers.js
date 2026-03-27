@@ -1,12 +1,7 @@
 import prisma from "../../config/prisma.js";
+import { parsePositiveInt } from "../../utils/id.js";
 
-export function parsePositiveId(value) {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
-  return id;
-}
+export { parsePositiveInt };
 
 export async function getExistingProduct(productId) {
   return prisma.product.findUnique({
