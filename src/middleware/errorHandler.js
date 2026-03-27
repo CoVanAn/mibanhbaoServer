@@ -68,7 +68,8 @@ export const errorHandler = (err, req, res, next) => {
     statusCode = HTTP_STATUS.VALIDATION_ERROR;
     message = "Validation failed";
     code = "VALIDATION_ERROR";
-    errors = err.errors?.map((e) => ({
+    const zodIssues = err.errors || err.issues || [];
+    errors = zodIssues.map((e) => ({
       field: e.path.join("."),
       message: e.message,
     }));

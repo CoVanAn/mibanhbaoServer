@@ -8,7 +8,7 @@ import {
 } from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants
-export const createVariant = async (req, res) => {
+export const createVariant = async (req, res, next) => {
   try {
     const pid = req.params.id;
 
@@ -38,13 +38,12 @@ export const createVariant = async (req, res) => {
 
     return res.json({ success: true, id: variant.id });
   } catch (err) {
-    console.error("createVariant error:", err);
-    return res.status(500).json({ message: "error", details: err.message });
+    return next(err);
   }
 };
 
 // PATCH /api/product/:id/variants/:variantId
-export const updateVariant = async (req, res) => {
+export const updateVariant = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -64,13 +63,12 @@ export const updateVariant = async (req, res) => {
 
     return res.json({ success: true, message: "Variant updated" });
   } catch (err) {
-    console.error("updateVariant error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // DELETE /api/product/:id/variants/:variantId
-export const deleteVariant = async (req, res) => {
+export const deleteVariant = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -99,13 +97,12 @@ export const deleteVariant = async (req, res) => {
 
     return res.json({ success: true, message: "Variant deleted" });
   } catch (err) {
-    console.error("deleteVariant error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // GET /api/product/:id/variants
-export const getProductVariants = async (req, res) => {
+export const getProductVariants = async (req, res, next) => {
   try {
     const pid = req.params.id;
 
@@ -137,13 +134,12 @@ export const getProductVariants = async (req, res) => {
 
     return res.json({ success: true, variants: variantsWithCurrentPrice });
   } catch (err) {
-    console.error("getProductVariants error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // GET /api/product/:id/variants/:variantId or /api/product/variant/:variantId
-export const getVariant = async (req, res) => {
+export const getVariant = async (req, res, next) => {
   try {
     const pid = req.params.id ? req.params.id : null;
     const vid = parsePositiveInt(req.params.variantId);
@@ -172,7 +168,6 @@ export const getVariant = async (req, res) => {
 
     return res.json({ success: true, variant: variantWithDetails });
   } catch (err) {
-    console.error("getVariant error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };

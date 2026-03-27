@@ -7,7 +7,7 @@ import { parsePositiveInt } from "../../utils/id.js";
  * Get full customer detail: profile + addresses + order history + coupon usage
  * Roles: ADMIN, STAFF
  */
-export async function getCustomerDetail(req, res) {
+export async function getCustomerDetail(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -143,10 +143,6 @@ export async function getCustomerDetail(req, res) {
       },
     });
   } catch (error) {
-    console.error("getCustomerDetail error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy thông tin khách hàng",
-    });
+    return next(error);
   }
 }

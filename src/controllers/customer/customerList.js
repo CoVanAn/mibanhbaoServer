@@ -7,13 +7,12 @@ import {
   mapUserSummary,
 } from "../user/adminUserHelpers.js";
 
-
 /**
  * GET /api/admin/customers
  * List all customers with pagination, search, filter
  * Roles: ADMIN, STAFF
  */
-export async function getCustomerList(req, res) {
+export async function getCustomerList(req, res, next) {
   try {
     const { page, limit, search, isActive, sortBy, order } = req.query;
     const { pageNum, limitNum, skip } = getPagingParams({ page, limit });
@@ -77,10 +76,6 @@ export async function getCustomerList(req, res) {
       pagination: buildPagination(pageNum, limitNum, total),
     });
   } catch (error) {
-    console.error("getCustomerList error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy danh sách khách hàng",
-    });
+    return next(error);
   }
 }

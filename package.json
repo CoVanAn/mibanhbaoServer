@@ -7,14 +7,17 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:smoke",
+    "test:smoke": "node --check src/app.js && node --check src/server.js",
+    "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/unit --passWithNoTests",
+    "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/integration --passWithNoTests",
+    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage --passWithNoTests"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.14.0",
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -24,17 +27,22 @@
     "express-session": "^1.18.2",
     "jsdom": "^26.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.3.3",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "socket.io": "^4.8.1",
-    "stripe": "^15.4.0",
-    "validator": "^13.11.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "prisma": "^6.14.0"
+    "jest": "^30.0.5",
+    "prisma": "^6.14.0",
+    "supertest": "^7.1.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ]
   }
 }

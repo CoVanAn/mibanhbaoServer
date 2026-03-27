@@ -9,7 +9,7 @@ import {
 import { getVariantWithOwnership } from "./productControllerHelpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
-export const setVariantPrice = async (req, res) => {
+export const setVariantPrice = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -46,13 +46,12 @@ export const setVariantPrice = async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
   } catch (err) {
-    console.error("setVariantPrice error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // GET /api/product/:id/variants/:variantId/prices
-export const getVariantPricesController = async (req, res) => {
+export const getVariantPricesController = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -73,13 +72,12 @@ export const getVariantPricesController = async (req, res) => {
       total: prices.length,
     });
   } catch (err) {
-    console.error("getVariantPricesController error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // PATCH /api/product/:id/variants/:variantId/price/:priceId
-export const updateVariantPrice = async (req, res) => {
+export const updateVariantPrice = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -148,13 +146,12 @@ export const updateVariantPrice = async (req, res) => {
 
     return res.json({ success: true, price: updatedPrice });
   } catch (err) {
-    console.error("updateVariantPrice error:", err);
-    return res.status(500).json({ message: "error", details: err.message });
+    return next(err);
   }
 };
 
 // DELETE /api/product/:id/variants/:variantId/price/:priceId
-export const deleteVariantPrice = async (req, res) => {
+export const deleteVariantPrice = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -203,11 +200,6 @@ export const deleteVariantPrice = async (req, res) => {
       price: deletedPrice,
     });
   } catch (err) {
-    console.error("❌ deleteVariantPrice error:", err);
-    console.error("Details:", err.message);
-    return res.status(500).json({
-      message: "Cannot delete price",
-      details: err.message,
-    });
+    return next(err);
   }
 };

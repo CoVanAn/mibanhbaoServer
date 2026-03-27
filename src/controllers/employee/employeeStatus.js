@@ -8,7 +8,7 @@ import { parsePositiveInt } from "../../utils/id.js";
  * Toggle employee isActive
  * Roles: ADMIN only
  */
-export async function toggleEmployeeStatus(req, res) {
+export async function toggleEmployeeStatus(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -62,10 +62,6 @@ export async function toggleEmployeeStatus(req, res) {
       employee: updated,
     });
   } catch (error) {
-    console.error("toggleEmployeeStatus error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi cập nhật trạng thái nhân viên",
-    });
+    return next(error);
   }
 }

@@ -1,8 +1,28 @@
 import prisma from "../../config/prisma.js";
 import cloudinary from "../../config/cloudinary.js";
+import { BadRequestError } from "../../exceptions/index.js";
+
+const extractPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  const match = url.match(/upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/);
+  return match ? match[1] : null;
+};
+
+const cleanupUploadedMedia = async (uploads) => {
+  await Promise.all(
+    uploads.map(async (upload) => {
+      if (!upload.publicId) return;
+      try {
+        await cloudinary.uploader.destroy(upload.publicId);
+      } catch (error) {
+        console.warn("Cloudinary rollback failed:", error?.message || error);
+      }
+    }),
+  );
+};
 
 // POST /api/product/:id/media
-export const addProductMedia = async (req, res) => {
+export const addProductMedia = async (req, res, next) => {
   try {
     const pid = req.params.id;
 
@@ -30,39 +50,46 @@ export const addProductMedia = async (req, res) => {
           );
           stream.end(f.buffer);
         });
-        uploads.push({ url: up.secure_url });
+        uploads.push({
+          url: up.secure_url,
+          publicId: up.public_id || extractPublicIdFromUrl(up.secure_url),
+        });
       } catch (e) {
-        console.error("Cloudinary upload error:", e?.message || e);
-        return res
-          .status(400)
-          .json({ success: false, message: "Image upload failed" });
+        await cleanupUploadedMedia(uploads);
+        throw new BadRequestError("Image upload failed");
       }
     }
 
-    // Get next position
-    const lastMedia = await prisma.productMedia.findFirst({
-      where: { productId: pid },
-      orderBy: { position: "desc" },
-    });
-    const nextPos = (lastMedia?.position ?? -1) + 1;
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Get next position inside transaction to avoid stale reads
+        const lastMedia = await tx.productMedia.findFirst({
+          where: { productId: pid },
+          orderBy: { position: "desc" },
+        });
+        const nextPos = (lastMedia?.position ?? -1) + 1;
 
-    await prisma.productMedia.createMany({
-      data: uploads.map((u, idx) => ({
-        productId: pid,
-        url: u.url,
-        position: nextPos + idx,
-      })),
-    });
+        await tx.productMedia.createMany({
+          data: uploads.map((u, idx) => ({
+            productId: pid,
+            url: u.url,
+            position: nextPos + idx,
+          })),
+        });
+      });
+    } catch (error) {
+      await cleanupUploadedMedia(uploads);
+      throw error;
+    }
 
     return res.json({ success: true, message: "Media added" });
   } catch (err) {
-    console.error("addProductMedia error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // DELETE /api/product/:id/media/:mediaId
-export const deleteProductMedia = async (req, res) => {
+export const deleteProductMedia = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const mid = req.params.mediaId;
@@ -72,13 +99,12 @@ export const deleteProductMedia = async (req, res) => {
       return res.status(404).json({ message: "Media not found" });
     }
 
-    // Cleanup Cloudinary (try to infer public_id from URL)
+    await prisma.productMedia.delete({ where: { id: mid } });
+
+    // Cleanup Cloudinary after DB success (best effort)
     if (media.url) {
       try {
-        const match = media.url.match(
-          /upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/,
-        );
-        const publicId = match ? match[1] : null;
+        const publicId = extractPublicIdFromUrl(media.url);
         if (publicId) {
           await cloudinary.uploader.destroy(publicId);
         }
@@ -87,17 +113,14 @@ export const deleteProductMedia = async (req, res) => {
       }
     }
 
-    await prisma.productMedia.delete({ where: { id: mid } });
-
     return res.json({ success: true, message: "Media deleted" });
   } catch (err) {
-    console.error("deleteProductMedia error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // PATCH /api/product/:id/media/reorder
-export const reorderProductMedia = async (req, res) => {
+export const reorderProductMedia = async (req, res, next) => {
   try {
     const pid = req.params.id;
 
@@ -119,6 +142,9 @@ export const reorderProductMedia = async (req, res) => {
     if (!Array.isArray(mediaIds)) {
       return res.status(400).json({ message: "mediaIds must be an array" });
     }
+    if (new Set(mediaIds).size !== mediaIds.length) {
+      return res.status(400).json({ message: "mediaIds contains duplicates" });
+    }
 
     // Verify all media belong to this product
     const medias = await prisma.productMedia.findMany({
@@ -128,24 +154,24 @@ export const reorderProductMedia = async (req, res) => {
       return res.status(400).json({ message: "Some media not found" });
     }
 
-    // Update positions
-    for (let i = 0; i < mediaIds.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      await prisma.productMedia.update({
-        where: { id: mediaIds[i] },
-        data: { position: i },
-      });
-    }
+    // Update positions atomically
+    await prisma.$transaction(
+      mediaIds.map((id, index) =>
+        prisma.productMedia.update({
+          where: { id },
+          data: { position: index },
+        }),
+      ),
+    );
 
     return res.json({ success: true, message: "Media reordered" });
   } catch (err) {
-    console.error("reorderProductMedia error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // PATCH /api/product/:id/media/:mediaId
-export const updateProductMedia = async (req, res) => {
+export const updateProductMedia = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const mid = req.params.mediaId;
@@ -158,13 +184,20 @@ export const updateProductMedia = async (req, res) => {
     const { alt, position } = req.body;
     const data = {};
     if (alt !== undefined) data.alt = alt;
-    if (position !== undefined) data.position = Number(position);
+    if (position !== undefined) {
+      const parsedPosition = Number(position);
+      if (Number.isNaN(parsedPosition) || parsedPosition < 0) {
+        return res
+          .status(400)
+          .json({ message: "position must be a non-negative number" });
+      }
+      data.position = parsedPosition;
+    }
 
     await prisma.productMedia.update({ where: { id: mid }, data });
 
     return res.json({ success: true, message: "Media updated" });
   } catch (err) {
-    console.error("updateProductMedia error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };

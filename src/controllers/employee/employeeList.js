@@ -8,14 +8,12 @@ import {
   mapUserSummary,
 } from "../user/adminUserHelpers.js";
 
-
-
 /**
  * GET /api/admin/employees
  * List internal users (ADMIN, STAFF) with pagination, search and filters
  * Roles: ADMIN, STAFF
  */
-export async function getEmployeeList(req, res) {
+export async function getEmployeeList(req, res, next) {
   try {
     const { page, limit, search, role, isActive, sortBy, order } = req.query;
     const { pageNum, limitNum, skip } = getPagingParams({ page, limit });
@@ -67,10 +65,6 @@ export async function getEmployeeList(req, res) {
       pagination: buildPagination(pageNum, limitNum, total),
     });
   } catch (error) {
-    console.error("getEmployeeList error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy danh sách nhân viên",
-    });
+    return next(error);
   }
 }

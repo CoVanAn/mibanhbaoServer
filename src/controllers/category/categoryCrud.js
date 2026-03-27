@@ -2,11 +2,13 @@ import prisma from "../../config/prisma.js";
 import { uniqueCategorySlug } from "./helpers.js";
 
 // POST /api/category/add
-export const addCategory = async (req, res) => {
+export const addCategory = async (req, res, next) => {
   try {
     const { name, parentId, position = 0 } = req.body;
     if (!name)
-      return res.status(400).json({ success: false, message: "Tên danh mục là bắt buộc" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Tên danh mục là bắt buộc" });
 
     const slug = await uniqueCategorySlug(name);
 
@@ -21,13 +23,12 @@ export const addCategory = async (req, res) => {
 
     return res.json({ success: true, id: created.id });
   } catch (err) {
-    console.error("addCategory(prisma) error:", err);
-    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
+    return next(err);
   }
 };
 
 // GET /api/category/list
-export const listCategory = async (req, res) => {
+export const listCategory = async (req, res, next) => {
   try {
     const includeInactive = String(req.query.includeInactive || "") === "1";
     const items = await prisma.category.findMany({
@@ -36,23 +37,24 @@ export const listCategory = async (req, res) => {
     });
     return res.json(items);
   } catch (err) {
-    console.error("listCategory(prisma) error:", err);
-    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
+    return next(err);
   }
 };
 
 // GET /api/category/:idOrSlug
-export const getCategory = async (req, res) => {
+export const getCategory = async (req, res, next) => {
   try {
     const { idOrSlug } = req.params;
     const where = /^\d+$/.test(idOrSlug)
       ? { id: Number(idOrSlug) }
       : { slug: String(idOrSlug) };
     const cat = await prisma.category.findFirst({ where });
-    if (!cat) return res.status(404).json({ success: false, message: "Danh mục không tồn tại" });
+    if (!cat)
+      return res
+        .status(404)
+        .json({ success: false, message: "Danh mục không tồn tại" });
     return res.json(cat);
   } catch (err) {
-    console.error("getCategory error:", err);
-    return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ" });
+    return next(err);
   }
 };

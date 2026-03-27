@@ -1,7 +1,7 @@
 import prisma from "../../config/prisma.js";
 
 // POST /api/product/:id/categories
-export const setProductCategories = async (req, res) => {
+export const setProductCategories = async (req, res, next) => {
   try {
     const pid = req.params.id;
 
@@ -34,13 +34,12 @@ export const setProductCategories = async (req, res) => {
 
     return res.json({ success: true, message: "Categories updated" });
   } catch (err) {
-    console.error("setProductCategories error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // POST /api/product/:id/category/:categoryId
-export const addProductCategory = async (req, res) => {
+export const addProductCategory = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const cid = req.params.categoryId;
@@ -67,13 +66,12 @@ export const addProductCategory = async (req, res) => {
 
     return res.json({ success: true, message: "Category added" });
   } catch (err) {
-    console.error("addProductCategory error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // DELETE /api/product/:id/category/:categoryId
-export const removeProductCategoryLink = async (req, res) => {
+export const removeProductCategoryLink = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const cid = req.params.categoryId;
@@ -84,7 +82,6 @@ export const removeProductCategoryLink = async (req, res) => {
 
     return res.json({ success: true, message: "Category link removed" });
   } catch (err) {
-    console.error("removeProductCategoryLink error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };

@@ -6,7 +6,7 @@ import { parsePositiveInt } from "../../utils/id.js";
  * Toggle isActive for a customer
  * Roles: ADMIN only
  */
-export async function toggleCustomerStatus(req, res) {
+export async function toggleCustomerStatus(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -53,10 +53,6 @@ export async function toggleCustomerStatus(req, res) {
       customer: updated,
     });
   } catch (error) {
-    console.error("toggleCustomerStatus error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi cập nhật trạng thái khách hàng",
-    });
+    return next(error);
   }
 }

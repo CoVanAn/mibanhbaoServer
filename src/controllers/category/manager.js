@@ -3,7 +3,7 @@ import { uniqueCategorySlug, validateNoCycle } from "./helpers.js";
 import { parsePositiveInt } from "../../utils/id.js";
 
 // PATCH /api/category/:id
-export const updateCategory = async (req, res) => {
+export const updateCategory = async (req, res, next) => {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) return res.status(400).json({ message: "invalid id" });
@@ -48,13 +48,12 @@ export const updateCategory = async (req, res) => {
     const updated = await prisma.category.update({ where: { id }, data });
     return res.json({ success: true, id: updated.id });
   } catch (err) {
-    console.error("updateCategory error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // DELETE /api/category/:id
-export const removeCategory = async (req, res) => {
+export const removeCategory = async (req, res, next) => {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) return res.status(400).json({ message: "invalid id" });
@@ -80,8 +79,6 @@ export const removeCategory = async (req, res) => {
     await prisma.category.delete({ where: { id } });
     return res.json({ success: true });
   } catch (err) {
-    console.error("removeCategory error:", err);
-    // If constraint errors occur, surface as 400
-    return res.status(400).json({ message: "cannot delete category" });
+    return next(err);
   }
 };

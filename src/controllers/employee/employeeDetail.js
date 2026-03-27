@@ -11,7 +11,7 @@ import { parsePositiveInt } from "../../utils/id.js";
  * Get employee detail
  * Roles: ADMIN, STAFF
  */
-export async function getEmployeeDetail(req, res) {
+export async function getEmployeeDetail(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -62,10 +62,6 @@ export async function getEmployeeDetail(req, res) {
       },
     });
   } catch (error) {
-    console.error("getEmployeeDetail error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy thông tin nhân viên",
-    });
+    return next(error);
   }
 }

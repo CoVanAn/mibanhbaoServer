@@ -11,7 +11,7 @@ import { parsePositiveInt } from "../../utils/id.js";
  * POST /api/cart/items
  * Body: { variantId, quantity, productId }
  */
-export async function addItemToCart(req, res) {
+export async function addItemToCart(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -97,12 +97,7 @@ export async function addItemToCart(req, res) {
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
-    console.error("Error adding item to cart:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to add item to cart",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -111,7 +106,7 @@ export async function addItemToCart(req, res) {
  * PUT /api/cart/items/:itemId
  * Body: { quantity }
  */
-export async function updateCartItem(req, res) {
+export async function updateCartItem(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -191,12 +186,7 @@ export async function updateCartItem(req, res) {
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
-    console.error("Error updating cart item:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi máy chủ nội bộ",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -204,7 +194,7 @@ export async function updateCartItem(req, res) {
  * Remove item from cart
  * DELETE /api/cart/items/:itemId
  */
-export async function removeCartItem(req, res) {
+export async function removeCartItem(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -248,12 +238,7 @@ export async function removeCartItem(req, res) {
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
-    console.error("Error removing cart item:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi máy chủ nội bộ",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -261,7 +246,7 @@ export async function removeCartItem(req, res) {
  * Clear all items from cart
  * DELETE /api/cart/clear
  */
-export async function clearCart(req, res) {
+export async function clearCart(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -280,11 +265,6 @@ export async function clearCart(req, res) {
       cart: formatCartResponse(updatedCart),
     });
   } catch (error) {
-    console.error("Error clearing cart:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi máy chủ nội bộ",
-      error: error.message,
-    });
+    return next(error);
   }
 }

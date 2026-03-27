@@ -12,7 +12,7 @@ import {
  * Get current cart
  * GET /api/cart
  */
-export async function getCart(req, res) {
+export async function getCart(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -38,12 +38,7 @@ export async function getCart(req, res) {
       cart: formatCartResponse(cart),
     });
   } catch (error) {
-    console.error("Lỗi khi fetch giỏ hàng:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi máy chủ nội bộ",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -52,7 +47,7 @@ export async function getCart(req, res) {
  * POST /api/cart/merge
  * Body: { guestToken }
  */
-export async function mergeCart(req, res) {
+export async function mergeCart(req, res, next) {
   try {
     const userId = req.user?.id;
     const { guestToken } = req.body;
@@ -79,12 +74,7 @@ export async function mergeCart(req, res) {
       cart: formatCartResponse(mergedCart),
     });
   } catch (error) {
-    console.error("Error merging carts:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to merge carts",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -93,7 +83,7 @@ export async function mergeCart(req, res) {
  * POST /api/cart/coupon
  * Body: { couponCode }
  */
-export async function applyCoupon(req, res) {
+export async function applyCoupon(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -128,12 +118,7 @@ export async function applyCoupon(req, res) {
       cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {
-    console.error("Error applying coupon:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to apply coupon",
-      error: error.message,
-    });
+    return next(error);
   }
 }
 
@@ -141,7 +126,7 @@ export async function applyCoupon(req, res) {
  * Remove coupon from cart
  * DELETE /api/cart/coupon
  */
-export async function removeCoupon(req, res) {
+export async function removeCoupon(req, res, next) {
   try {
     const userId = req.user?.id || null;
     const guestToken = req.cookies.guestToken || req.body.guestToken;
@@ -165,11 +150,6 @@ export async function removeCoupon(req, res) {
       cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {
-    console.error("Error removing coupon:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to remove coupon",
-      error: error.message,
-    });
+    return next(error);
   }
 }

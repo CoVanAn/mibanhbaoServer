@@ -206,16 +206,25 @@ export class ProductService {
     }
 
     // === BOOLEAN FIELD CONVERSION ===
-    // Convert string boolean values from form data to actual booleans
-    const isActiveBoolean =
-      productData.isActive === true ||
-      productData.isActive === "true" ||
-      productData.isActive === "1";
+    // Preserve DB defaults when the field is not provided.
+    const toOptionalBoolean = (value) => {
+      if (value === undefined || value === null || value === "") {
+        return undefined;
+      }
+      if (typeof value === "boolean") {
+        return value;
+      }
+      if (value === "1" || value === "true") {
+        return true;
+      }
+      if (value === "0" || value === "false") {
+        return false;
+      }
+      return undefined;
+    };
 
-    const isFeaturedBoolean =
-      productData.isFeatured === true ||
-      productData.isFeatured === "true" ||
-      productData.isFeatured === "1";
+    const isActiveBoolean = toOptionalBoolean(productData.isActive);
+    const isFeaturedBoolean = toOptionalBoolean(productData.isFeatured);
 
     // === IMAGE UPLOAD ===
     const uploadedUrls = [];
@@ -248,8 +257,10 @@ export class ProductService {
         description: description || null,
         content: sanitizedContent,
         categoryIds: finalCategoryIds,
-        isActive: isActiveBoolean,
-        isFeatured: isFeaturedBoolean,
+        ...(isActiveBoolean !== undefined ? { isActive: isActiveBoolean } : {}),
+        ...(isFeaturedBoolean !== undefined
+          ? { isFeatured: isFeaturedBoolean }
+          : {}),
       },
       {
         name: "Default",

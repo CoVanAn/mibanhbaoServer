@@ -6,7 +6,7 @@ import {
 
 // GET /api/product/:id/variants/:variantId/inventory
 // GET /api/product/variant/:variantId/inventory
-export const getInventory = async (req, res) => {
+export const getInventory = async (req, res, next) => {
   try {
     const pid = req.params.id ? req.params.id : null;
     const vid = parsePositiveInt(req.params.variantId);
@@ -24,14 +24,13 @@ export const getInventory = async (req, res) => {
       inventory: inventory || { variantId: vid, quantity: 0 },
     });
   } catch (err) {
-    console.error("getInventory error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };
 
 // PATCH /api/product/:id/variants/:variantId/inventory
 // PATCH /api/product/variant/:variantId/inventory
-export const updateInventory = async (req, res) => {
+export const updateInventory = async (req, res, next) => {
   try {
     const pid = req.params.id ? req.params.id : null;
     const vid = parsePositiveInt(req.params.variantId);
@@ -86,7 +85,6 @@ export const updateInventory = async (req, res) => {
 
     return res.json({ success: true, inventory });
   } catch (err) {
-    console.error("updateInventory error:", err);
-    return res.status(500).json({ message: "error" });
+    return next(err);
   }
 };

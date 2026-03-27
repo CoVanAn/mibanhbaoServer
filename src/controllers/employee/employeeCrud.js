@@ -19,7 +19,7 @@ const employeeSelect = {
  * Create employee account (ADMIN/STAFF)
  * Roles: ADMIN
  */
-export async function createEmployee(req, res) {
+export async function createEmployee(req, res, next) {
   try {
     const { name, email, phone, role, password } = req.body;
 
@@ -57,11 +57,7 @@ export async function createEmployee(req, res) {
       employee,
     });
   } catch (error) {
-    console.error("createEmployee error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi tạo tài khoản nhân viên",
-    });
+    return next(error);
   }
 }
 
@@ -70,7 +66,7 @@ export async function createEmployee(req, res) {
  * Update employee profile/role
  * Roles: ADMIN
  */
-export async function updateEmployee(req, res) {
+export async function updateEmployee(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -141,11 +137,7 @@ export async function updateEmployee(req, res) {
       employee,
     });
   } catch (error) {
-    console.error("updateEmployee error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi cập nhật nhân viên",
-    });
+    return next(error);
   }
 }
 
@@ -154,7 +146,7 @@ export async function updateEmployee(req, res) {
  * Reset employee password
  * Roles: ADMIN
  */
-export async function resetEmployeePassword(req, res) {
+export async function resetEmployeePassword(req, res, next) {
   try {
     const id = parsePositiveInt(req.params.id);
     if (!id) {
@@ -190,10 +182,6 @@ export async function resetEmployeePassword(req, res) {
       message: "Đặt lại mật khẩu thành công",
     });
   } catch (error) {
-    console.error("resetEmployeePassword error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi khi đặt lại mật khẩu",
-    });
+    return next(error);
   }
 }
