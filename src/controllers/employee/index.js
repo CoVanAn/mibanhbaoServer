@@ -1,8 +1,8 @@
-export { getEmployeeList } from "./employeeList.js";
-export { getEmployeeDetail } from "./employeeDetail.js";
-export { toggleEmployeeStatus } from "./employeeStatus.js";
+export { getEmployeeList } from "./list.js";
+export { getEmployeeDetail } from "./detail.js";
+export { toggleEmployeeStatus } from "./status.js";
 export {
   createEmployee,
   updateEmployee,
   resetEmployeePassword,
-} from "./employeeCrud.js";
+} from "./crud.js";

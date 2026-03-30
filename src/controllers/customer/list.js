@@ -5,7 +5,7 @@ import {
   buildPagination,
   getPagingParams,
   mapUserSummary,
-} from "../user/adminUserHelpers.js";
+} from "../user/helpers.js";
 
 /**
  * GET /api/admin/customers

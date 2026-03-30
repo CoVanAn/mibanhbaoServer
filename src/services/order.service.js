@@ -5,7 +5,7 @@ import {
   AuthorizationError,
   AuthenticationError,
 } from "../exceptions/index.js";
-import { getOrCreateCart } from "../controllers/cart/cartHelpers.js";
+import { getOrCreateCart } from "./cart.service.js";
 import {
   emitOrderCreated,
   emitOrderStatusChanged,

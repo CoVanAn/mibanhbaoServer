@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import {
-  addProduct,
+  createProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
@@ -20,7 +20,7 @@ import {
   getProductVariants,
   getVariant,
   setVariantPrice,
-  getVariantPricesController,
+  getVariantPrices,
   updateVariantPrice,
   deleteVariantPrice,
   getInventory,
@@ -82,7 +82,7 @@ router.post(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   withUpload(upload.any()),
-  addProduct,
+  createProduct,
 );
 router.get("/list", listProducts);
 router.get("/featured", listFeaturedProducts);
@@ -204,7 +204,7 @@ router.post(
 router.get(
   "/:id/variants/:variantId/prices",
   validateParams(productVariantParamsSchema),
-  getVariantPricesController,
+  getVariantPrices,
 );
 router.patch(
   "/:id/variants/:variantId/price/:priceId",

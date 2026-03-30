@@ -1,12 +1,12 @@
 // Core CRUD operations
 import {
-  addProduct,
+  createProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
   updateProduct,
   deleteProduct,
-} from "./productCrud.js";
+} from "./crud.js";
 
 // Category management
 import {
@@ -35,7 +35,7 @@ import {
 // Pricing management
 import {
   setVariantPrice,
-  getVariantPricesController,
+  getVariantPrices,
   updateVariantPrice,
   deleteVariantPrice,
 } from "./price.js";
@@ -43,12 +43,9 @@ import {
 // Inventory management
 import { getInventory, updateInventory } from "./inventory.js";
 
-// Utility functions
-import { slugify, uniqueSlug } from "../../utils/helpers.js";
-
 // Re-export all functions for named imports
 export {
-  addProduct,
+  createProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
@@ -67,18 +64,16 @@ export {
   getProductVariants,
   getVariant,
   setVariantPrice,
-  getVariantPricesController,
+  getVariantPrices,
   updateVariantPrice,
   deleteVariantPrice,
   getInventory,
   updateInventory,
-  slugify,
-  uniqueSlug,
 };
 
 // Default export for backward compatibility
 export default {
-  addProduct,
+  createProduct,
   listProducts,
   listFeaturedProducts,
   getProduct,
@@ -97,11 +92,9 @@ export default {
   getProductVariants,
   getVariant,
   setVariantPrice,
-  getVariantPricesController,
+  getVariantPrices,
   updateVariantPrice,
   deleteVariantPrice,
   getInventory,
   updateInventory,
-  slugify,
-  uniqueSlug,
 };

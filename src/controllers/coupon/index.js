@@ -5,6 +5,6 @@ export {
   updateCoupon,
   deleteCoupon,
   getCouponRedemptions,
-} from "./couponCrud.js";
+} from "./crud.js";
 
-export { validateCouponCode } from "./couponApply.js";
+export { validateCouponCode } from "./apply.js";

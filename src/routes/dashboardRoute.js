@@ -7,7 +7,7 @@ import {
   getDashboardDaily,
   getDashboardTopProducts,
   getDashboardLowStock,
-} from "../controllers/dashboard/dashboard.controller.js";
+} from "../controllers/dashboard/dashboard.js";
 import {
   dashboardOverviewQuerySchema,
   dashboardDailyQuerySchema,

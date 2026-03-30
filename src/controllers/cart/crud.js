@@ -2,11 +2,11 @@ import {
   getOrCreateCart,
   formatCartResponse,
   mergeGuestCartToUser,
-} from "./cartHelpers.js";
+} from "./helpers.js";
 import {
   applyCouponToCart,
   removeCouponFromCart,
-} from "../coupon/couponApply.js";
+} from "../coupon/apply.js";
 
 /**
  * Get current cart

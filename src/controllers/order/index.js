@@ -5,7 +5,7 @@ import {
   getUserOrders,
   getAllOrders,
   updateOrderNote,
-} from "./orderCrud.js";
+} from "./crud.js";
 
 // Order status management
 import {
@@ -13,7 +13,7 @@ import {
   cancelOrder,
   getOrderStatusHistory,
   canTransitionStatus,
-} from "./orderStatus.js";
+} from "./status.js";
 
 // Order payment operations
 import {
@@ -21,7 +21,7 @@ import {
   updatePaymentStatus,
   getOrderPayments,
   processRefund,
-} from "./orderPayment.js";
+} from "./payment.js";
 
 // Export all functions
 export {

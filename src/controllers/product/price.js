@@ -1,12 +1,12 @@
 import prisma from "../../config/prisma.js";
 import {
   getCurrentPrice,
-  getVariantPrices,
+  getVariantPrices as getVariantPricesData,
   validatePricePeriod,
   setPermanentPrice,
   setScheduledPrice,
 } from "../../utils/priceHelpers.js";
-import { getVariantWithOwnership } from "./productControllerHelpers.js";
+import { getVariantWithOwnership } from "./helpers.js";
 
 // POST /api/product/:id/variants/:variantId/price
 export const setVariantPrice = async (req, res, next) => {
@@ -51,7 +51,7 @@ export const setVariantPrice = async (req, res, next) => {
 };
 
 // GET /api/product/:id/variants/:variantId/prices
-export const getVariantPricesController = async (req, res, next) => {
+export const getVariantPrices = async (req, res, next) => {
   try {
     const pid = req.params.id;
     const vid = req.params.variantId;
@@ -63,7 +63,7 @@ export const getVariantPricesController = async (req, res, next) => {
     }
 
     // Use helper function for better price ordering
-    const prices = await getVariantPrices(vid, includeInactive === "true");
+    const prices = await getVariantPricesData(vid, includeInactive === "true");
     const currentPrice = await getCurrentPrice(vid);
 
     return res.json({

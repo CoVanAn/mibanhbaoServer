@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma.js";
-import { getOrCreateCart } from "../cart/cartHelpers.js";
+import { getOrCreateCart } from "../../services/cart.service.js";
 import { validateCoupon } from "../../utils/couponHelpers.js";
 
 /**
@@ -116,7 +116,7 @@ export async function removeCouponFromCart({
  * Accepts both authenticated users and guests.
  * Body: { code: string, subtotal?: number }
  */
-export async function validateCouponCode(req, res) {
+export async function validateCouponCode(req, res, next) {
   try {
     const { code, subtotal = 0 } = req.body;
     const userId = req.user?.id ?? null;
@@ -147,9 +147,6 @@ export async function validateCouponCode(req, res) {
         : null,
     });
   } catch (err) {
-    console.error("Lỗi khi xác thực mã giảm giá:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Lỗi máy chủ nội bộ" });
+    return next(err);
   }
 }

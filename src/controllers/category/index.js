@@ -1,20 +1,20 @@
 // Import all functions first
-import { addCategory, listCategory, getCategory } from "./categoryCrud.js";
-import { updateCategory, removeCategory } from "./manager.js";
+import { createCategory, listCategories, getCategory } from "./crud.js";
+import { updateCategory, deleteCategory } from "./mutations.js";
 import { uniqueCategorySlug, validateNoCycle } from "./helpers.js";
 
 // Re-export all functions
-export { addCategory, listCategory, getCategory };
-export { updateCategory, removeCategory };
+export { createCategory, listCategories, getCategory };
+export { updateCategory, deleteCategory };
 export { uniqueCategorySlug, validateNoCycle };
 
 // Default export for backward compatibility
 export default {
-  addCategory,
-  listCategory,
+  createCategory,
+  listCategories,
   getCategory,
   updateCategory,
-  removeCategory,
+  deleteCategory,
   uniqueCategorySlug,
   validateNoCycle,
 };

@@ -17,7 +17,7 @@ const parsePositiveIntOrDefault = (value, fallback) => {
 // Helper functions moved to utils/productFormatters.js
 
 // POST /api/products (or /api/product/add)
-export const addProduct = async (req, res, next) => {
+export const createProduct = async (req, res, next) => {
   try {
     // Extract files from request
     const files = Array.isArray(req.files)
@@ -38,6 +38,9 @@ export const addProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+// Backward-compatible alias
+export const addProduct = createProduct;
 
 // GET /api/products/list
 export const listProducts = async (req, res, next) => {

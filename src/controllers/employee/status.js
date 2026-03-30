@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma.js";
-import { isEmployeeRole } from "../user/adminUserHelpers.js";
+import { isEmployeeRole } from "../user/helpers.js";
 
 import { parsePositiveInt } from "../../utils/id.js";
 

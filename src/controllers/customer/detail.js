@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma.js";
-import { linkedProvidersFrom } from "../user/adminUserHelpers.js";
+import { linkedProvidersFrom } from "../user/helpers.js";
 
 import { parsePositiveInt } from "../../utils/id.js";
 /**

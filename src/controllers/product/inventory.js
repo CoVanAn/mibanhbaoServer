@@ -2,7 +2,7 @@ import prisma from "../../config/prisma.js";
 import {
   getVariantWithOwnership,
   parsePositiveInt,
-} from "./productControllerHelpers.js";
+} from "./helpers.js";
 
 // GET /api/product/:id/variants/:variantId/inventory
 // GET /api/product/variant/:variantId/inventory

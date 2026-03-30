@@ -5,7 +5,7 @@ import {
   getExistingProduct,
   getVariantWithOwnership,
   parsePositiveInt,
-} from "./productControllerHelpers.js";
+} from "./helpers.js";
 
 // POST /api/product/:id/variants
 export const createVariant = async (req, res, next) => {

@@ -1,3 +1,3 @@
-export { getCustomerList } from "./customerList.js";
-export { getCustomerDetail } from "./customerDetail.js";
-export { toggleCustomerStatus } from "./customerStatus.js";
+export { getCustomerList } from "./list.js";
+export { getCustomerDetail } from "./detail.js";
+export { toggleCustomerStatus } from "./status.js";

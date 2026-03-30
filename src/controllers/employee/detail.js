@@ -2,7 +2,7 @@ import prisma from "../../config/prisma.js";
 import {
   isEmployeeRole,
   linkedProvidersFrom,
-} from "../user/adminUserHelpers.js";
+} from "../user/helpers.js";
 
 import { parsePositiveInt } from "../../utils/id.js";
 

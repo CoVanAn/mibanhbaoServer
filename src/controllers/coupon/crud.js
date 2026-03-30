@@ -4,7 +4,7 @@ import prisma from "../../config/prisma.js";
  * POST /api/coupon
  * Create a new coupon (ADMIN only)
  */
-export async function createCoupon(req, res) {
+export async function createCoupon(req, res, next) {
   try {
     const {
       code,
@@ -42,10 +42,7 @@ export async function createCoupon(req, res) {
 
     return res.status(201).json({ success: true, data: coupon });
   } catch (err) {
-    console.error("createCoupon error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }
 
@@ -53,7 +50,7 @@ export async function createCoupon(req, res) {
  * GET /api/coupon
  * List coupons with pagination (ADMIN/STAFF)
  */
-export async function listCoupons(req, res) {
+export async function listCoupons(req, res, next) {
   try {
     const { page = 1, limit = 20, isActive, code } = req.query;
     const where = {};
@@ -76,10 +73,7 @@ export async function listCoupons(req, res) {
       pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch (err) {
-    console.error("listCoupons error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }
 
@@ -87,7 +81,7 @@ export async function listCoupons(req, res) {
  * GET /api/coupon/:id
  * Get single coupon (ADMIN/STAFF)
  */
-export async function getCoupon(req, res) {
+export async function getCoupon(req, res, next) {
   try {
     const { id } = req.params;
     const coupon = await prisma.coupon.findUnique({ where: { id } });
@@ -98,10 +92,7 @@ export async function getCoupon(req, res) {
     }
     return res.json({ success: true, data: coupon });
   } catch (err) {
-    console.error("getCoupon error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }
 
@@ -109,7 +100,7 @@ export async function getCoupon(req, res) {
  * PATCH /api/coupon/:id
  * Update coupon (ADMIN only)
  */
-export async function updateCoupon(req, res) {
+export async function updateCoupon(req, res, next) {
   try {
     const { id } = req.params;
     const data = req.body;
@@ -126,10 +117,7 @@ export async function updateCoupon(req, res) {
         .status(404)
         .json({ success: false, message: "Coupon not found" });
     }
-    console.error("updateCoupon error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }
 
@@ -137,7 +125,7 @@ export async function updateCoupon(req, res) {
  * DELETE /api/coupon/:id
  * Delete coupon (ADMIN only)
  */
-export async function deleteCoupon(req, res) {
+export async function deleteCoupon(req, res, next) {
   try {
     const { id } = req.params;
     await prisma.coupon.delete({ where: { id } });
@@ -148,10 +136,7 @@ export async function deleteCoupon(req, res) {
         .status(404)
         .json({ success: false, message: "Coupon not found" });
     }
-    console.error("deleteCoupon error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }
 
@@ -159,7 +144,7 @@ export async function deleteCoupon(req, res) {
  * GET /api/coupon/:id/redemptions
  * Get all redemptions for a coupon (ADMIN/STAFF)
  */
-export async function getCouponRedemptions(req, res) {
+export async function getCouponRedemptions(req, res, next) {
   try {
     const { id } = req.params;
     const coupon = await prisma.coupon.findUnique({ where: { id } });
@@ -188,9 +173,6 @@ export async function getCouponRedemptions(req, res) {
 
     return res.json({ success: true, data: redemptions });
   } catch (err) {
-    console.error("getCouponRedemptions error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return next(err);
   }
 }

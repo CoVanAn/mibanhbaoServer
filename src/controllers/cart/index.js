@@ -1,5 +1,5 @@
 // Cart CRUD operations
-import { getCart, mergeCart, applyCoupon, removeCoupon } from "./cartCrud.js";
+import { getCart, mergeCart, applyCoupon, removeCoupon } from "./crud.js";
 
 // Cart items management
 import {
@@ -7,7 +7,7 @@ import {
   updateCartItem,
   removeCartItem,
   clearCart,
-} from "./cartItems.js";
+} from "./items.js";
 
 // Helper functions
 import {
@@ -16,7 +16,7 @@ import {
   mergeGuestCartToUser,
   validateCartItem,
   formatCartResponse,
-} from "./cartHelpers.js";
+} from "./helpers.js";
 
 // Export all functions
 export {

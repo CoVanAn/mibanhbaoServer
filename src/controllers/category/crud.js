@@ -2,7 +2,7 @@ import prisma from "../../config/prisma.js";
 import { uniqueCategorySlug } from "./helpers.js";
 
 // POST /api/category/add
-export const addCategory = async (req, res, next) => {
+export const createCategory = async (req, res, next) => {
   try {
     const { name, parentId, position = 0 } = req.body;
     if (!name)
@@ -28,7 +28,7 @@ export const addCategory = async (req, res, next) => {
 };
 
 // GET /api/category/list
-export const listCategory = async (req, res, next) => {
+export const listCategories = async (req, res, next) => {
   try {
     const includeInactive = String(req.query.includeInactive || "") === "1";
     const items = await prisma.category.findMany({
@@ -58,3 +58,7 @@ export const getCategory = async (req, res, next) => {
     return next(err);
   }
 };
+
+// Backward-compatible aliases
+export const addCategory = createCategory;
+export const listCategory = listCategories;

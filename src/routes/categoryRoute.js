@@ -1,10 +1,10 @@
 import express from "express";
 import {
-  addCategory,
-  listCategory,
+  createCategory,
+  listCategories,
   getCategory,
   updateCategory,
-  removeCategory,
+  deleteCategory,
 } from "../controllers/category/index.js";
 import authMiddleware from "../middleware/auth.js";
 import { requireRoles } from "../middleware/roles.js";
@@ -22,9 +22,9 @@ categoryRouter.post(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   validate(createCategorySchema),
-  addCategory,
+  createCategory,
 );
-categoryRouter.get("/list", listCategory);
+categoryRouter.get("/list", listCategories);
 categoryRouter.get("/:idOrSlug", getCategory);
 categoryRouter.patch(
   "/:id",
@@ -39,7 +39,7 @@ categoryRouter.delete(
   authMiddleware,
   requireRoles("ADMIN", "STAFF"),
   validateParams(categoryIdSchema),
-  removeCategory,
+  deleteCategory,
 );
 
 export default categoryRouter;
