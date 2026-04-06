@@ -32,8 +32,23 @@ export class OrderService {
     REFUNDED: [],
   };
 
-  canTransitionStatus(currentStatus, newStatus) {
-    const allowed = this.STATUS_TRANSITIONS[currentStatus] || [];
+  PICKUP_STATUS_TRANSITIONS = {
+    PENDING: ["CONFIRMED", "COMPLETED", "CANCELED"],
+    CONFIRMED: ["COMPLETED", "CANCELED"],
+    PREPARING: ["COMPLETED", "CANCELED"],
+    READY: ["COMPLETED", "CANCELED"],
+    OUT_FOR_DELIVERY: ["COMPLETED", "CANCELED"],
+    COMPLETED: ["REFUNDED"],
+    CANCELED: [],
+    REFUNDED: [],
+  };
+
+  canTransitionStatus(currentStatus, newStatus, method = "DELIVERY") {
+    const transitions =
+      method === "PICKUP"
+        ? this.PICKUP_STATUS_TRANSITIONS
+        : this.STATUS_TRANSITIONS;
+    const allowed = transitions[currentStatus] || [];
     return allowed.includes(newStatus);
   }
 
@@ -619,10 +634,15 @@ export class OrderService {
 
     if (!order) throw new NotFoundError("Order");
 
-    if (!this.canTransitionStatus(order.status, status)) {
+    if (!this.canTransitionStatus(order.status, status, order.method)) {
+      const transitions =
+        order.method === "PICKUP"
+          ? this.PICKUP_STATUS_TRANSITIONS
+          : this.STATUS_TRANSITIONS;
+
       throw new BadRequestError(
         `Cannot transition from ${order.status} to ${status}`,
-        this.STATUS_TRANSITIONS[order.status],
+        transitions[order.status],
       );
     }
 
