@@ -5,7 +5,11 @@ import { initSocketServer } from "./realtime/socketServer.js";
 import "dotenv/config";
 
 const PORT = process.env.PORT || 4000;
-const HOST = process.env.HOST || "0.0.0.0";
+const isRenderRuntime =
+  process.env.RENDER === "true" || !!process.env.RENDER_EXTERNAL_URL;
+const HOST = isRenderRuntime
+  ? "0.0.0.0"
+  : process.env.HOST || "0.0.0.0";
 const PUBLIC_URL =
   process.env.RENDER_EXTERNAL_URL ||
   process.env.PUBLIC_URL ||
