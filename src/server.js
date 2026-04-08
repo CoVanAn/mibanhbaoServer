@@ -5,7 +5,11 @@ import { initSocketServer } from "./realtime/socketServer.js";
 import "dotenv/config";
 
 const PORT = process.env.PORT || 4000;
-const HOST = process.env.HOST || "localhost";
+const HOST = process.env.HOST || "0.0.0.0";
+const PUBLIC_URL =
+  process.env.RENDER_EXTERNAL_URL ||
+  process.env.PUBLIC_URL ||
+  `http://localhost:${PORT}`;
 
 // Graceful shutdown handler
 const gracefulShutdown = (signal) => {
@@ -38,10 +42,11 @@ try {
 const httpServer = createServer(app);
 initSocketServer(httpServer);
 
-const server = httpServer.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`📚 API documentation: http://${HOST}:${PORT}/`);
-  console.log(`🏥 Health check: http://${HOST}:${PORT}/health`);
+const server = httpServer.listen(PORT, HOST, () => {
+  console.log(`\n🚀 Server listening on ${HOST}:${PORT}`);
+  console.log(`🌐 Public URL: ${PUBLIC_URL}`);
+  console.log(`📚 API documentation: ${PUBLIC_URL}/`);
+  console.log(`🏥 Health check: ${PUBLIC_URL}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
