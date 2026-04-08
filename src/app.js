@@ -49,7 +49,7 @@ const normalizeOrigin = (value) => {
 };
 
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:3000",
+  process.env.CLIENT_URL || "https://mibanhbao-client-v1.vercel.app",
   process.env.ADMIN_URL || "https://mibanhbao-admin.vercel.app",
   process.env.FRONTEND_URL,
   process.env.ADMIN_FRONTEND_URL,
