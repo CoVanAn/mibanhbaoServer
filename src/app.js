@@ -31,11 +31,44 @@ if (!sessionSecret) {
 }
 
 // CORS configuration
+const normalizeOrigin = (value) => {
+  if (!value || typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    try {
+      return new URL(`https://${trimmed}`).origin;
+    } catch {
+      return null;
+    }
+  }
+};
+
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   process.env.ADMIN_URL || "https://mibanhbao-admin.vercel.app",
   process.env.FRONTEND_URL,
-].filter(Boolean);
+  process.env.ADMIN_FRONTEND_URL,
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
+const isAllowedVercelAdminOrigin = (origin) => {
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return (
+      protocol === "https:" &&
+      (hostname === "mibanhbao-admin.vercel.app" ||
+        hostname.endsWith("-mibanhbao-admin.vercel.app"))
+    );
+  } catch {
+    return false;
+  }
+};
 
 if (isProduction) {
   app.set("trust proxy", 1);
@@ -52,9 +85,15 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      const normalizedOrigin = normalizeOrigin(origin);
+
+      if (
+        (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) ||
+        isAllowedVercelAdminOrigin(origin)
+      ) {
         callback(null, true);
       } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`);
         callback(new Error(`Origin ${origin} not allowed by CORS`));
       }
     },
