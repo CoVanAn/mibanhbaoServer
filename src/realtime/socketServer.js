@@ -7,7 +7,7 @@ let ioInstance = null;
 const getAllowedOrigins = () =>
   [
     process.env.CLIENT_URL || "http://localhost:3000",
-    process.env.ADMIN_URL || "http://localhost:5173",
+    process.env.ADMIN_URL || "https://mibanhbao-admin.vercel.app",
     process.env.FRONTEND_URL,
   ].filter(Boolean);
 
