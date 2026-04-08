@@ -6,13 +6,27 @@ const getRefreshCookieName = (req) =>
     ? "adminRefreshToken"
     : "refreshToken";
 
-const setCookieOptions = (res, cookieName, token) => {
-  const isProduction = process.env.NODE_ENV === "production";
-  const sameSite = isProduction ? "none" : "lax";
+const getCookieSecurityOptions = (req) => {
+  const isProductionLike =
+    process.env.NODE_ENV === "production" ||
+    process.env.RENDER === "true" ||
+    process.env.COOKIE_SECURE === "true";
+
+  const isHttpsRequest =
+    req.secure || req.headers["x-forwarded-proto"] === "https";
+
+  const secure = isProductionLike || isHttpsRequest;
+  const sameSite = secure ? "none" : "lax";
+
+  return { secure, sameSite };
+};
+
+const setCookieOptions = (req, res, cookieName, token) => {
+  const { secure, sameSite } = getCookieSecurityOptions(req);
 
   res.cookie(cookieName, token, {
     httpOnly: true,
-    secure: isProduction,
+    secure,
     sameSite,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
@@ -30,7 +44,7 @@ const registerUser = async (req, res) => {
     const { user, accessToken, refreshToken } = await userService.register(
       req.body,
     );
-    setCookieOptions(res, "refreshToken", refreshToken);
+    setCookieOptions(req, res, "refreshToken", refreshToken);
     return res.status(201).json({
       success: true,
       message: "Đăng ký thành công",
@@ -49,7 +63,7 @@ const loginUser = async (req, res) => {
       req.body,
     );
     const cookieName = getRefreshCookieName(req);
-    setCookieOptions(res, cookieName, refreshToken);
+    setCookieOptions(req, res, cookieName, refreshToken);
     return res.status(200).json({
       success: true,
       message: "Đăng nhập thành công",
@@ -84,7 +98,7 @@ const refreshToken = async (req, res) => {
     }
     const { accessToken, refreshToken: newRefreshToken } =
       await userService.rotateRefreshToken(token);
-    setCookieOptions(res, cookieName, newRefreshToken);
+    setCookieOptions(req, res, cookieName, newRefreshToken);
     return res.status(200).json({ success: true, accessToken });
   } catch (error) {
     return handleError(res, error);
@@ -94,14 +108,13 @@ const refreshToken = async (req, res) => {
 // Logout - delete refresh token from DB and clear cookie
 const logout = async (req, res) => {
   try {
-    const isProduction = process.env.NODE_ENV === "production";
-    const sameSite = isProduction ? "none" : "lax";
+    const { secure, sameSite } = getCookieSecurityOptions(req);
     const cookieName = getRefreshCookieName(req);
     const token = req.cookies[cookieName];
     await userService.deleteRefreshToken(token);
     res.clearCookie(cookieName, {
       httpOnly: true,
-      secure: isProduction,
+      secure,
       sameSite,
       path: "/",
     });
