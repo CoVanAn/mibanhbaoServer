@@ -8,10 +8,12 @@ const getRefreshCookieName = (req) =>
 
 const setCookieOptions = (res, cookieName, token) => {
   const isProduction = process.env.NODE_ENV === "production";
+  const sameSite = isProduction ? "none" : "lax";
+
   res.cookie(cookieName, token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
+    sameSite,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/",
   });
@@ -92,13 +94,16 @@ const refreshToken = async (req, res) => {
 // Logout - delete refresh token from DB and clear cookie
 const logout = async (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === "production";
+    const sameSite = isProduction ? "none" : "lax";
     const cookieName = getRefreshCookieName(req);
     const token = req.cookies[cookieName];
     await userService.deleteRefreshToken(token);
     res.clearCookie(cookieName, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite,
+      path: "/",
     });
     return res
       .status(200)
