@@ -1,4 +1,3 @@
-import prisma from "../config/prisma.js";
 import { NotFoundError, DatabaseError } from "../exceptions/index.js";
 
 /**

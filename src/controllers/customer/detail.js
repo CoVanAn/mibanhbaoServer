@@ -16,7 +16,7 @@ export async function getCustomerDetail(req, res, next) {
         .json({ success: false, message: "ID khách hàng không hợp lệ" });
     }
 
-    const customer = await prisma.user.findUnique({
+    const customer = await prisma.user.findFirst({
       where: { id, role: "CUSTOMER" },
       select: {
         id: true,

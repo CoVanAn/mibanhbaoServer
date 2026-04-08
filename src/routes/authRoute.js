@@ -5,6 +5,42 @@ import crypto from "crypto";
 import prisma from "../config/prisma.js";
 
 const router = express.Router();
+const oauthCodeStore = new Map();
+const OAUTH_CODE_TTL_MS = 2 * 60 * 1000;
+
+const cleanupExpiredOauthCodes = () => {
+  const now = Date.now();
+  for (const [code, value] of oauthCodeStore.entries()) {
+    if (value.expiresAt <= now) {
+      oauthCodeStore.delete(code);
+    }
+  }
+};
+
+const createOauthExchangeCode = (payload) => {
+  cleanupExpiredOauthCodes();
+  const code = crypto.randomBytes(32).toString("hex");
+  oauthCodeStore.set(code, {
+    ...payload,
+    expiresAt: Date.now() + OAUTH_CODE_TTL_MS,
+  });
+  return code;
+};
+
+const consumeOauthExchangeCode = (code) => {
+  cleanupExpiredOauthCodes();
+  const value = oauthCodeStore.get(code);
+  if (!value) {
+    return null;
+  }
+
+  oauthCodeStore.delete(code);
+  if (value.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return value;
+};
 
 // Helper function to generate JWT (Access Token - 15 minutes)
 const generateToken = (userId, role) => {
@@ -47,11 +83,11 @@ router.get(
       // Generate both access token and refresh token
       const accessToken = generateToken(user.id, user.role);
       const refreshToken = await generateRefreshToken(user.id);
+      const code = createOauthExchangeCode({ accessToken, refreshToken });
 
-      // Redirect to Next.js API route with tokens as query params
-      // Next.js route will set them as HttpOnly cookies
+      // Redirect with one-time opaque code instead of tokens to avoid URL token leakage
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-      const callbackUrl = `${frontendUrl}/api/auth/google/callback?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`;
+      const callbackUrl = `${frontendUrl}/api/auth/google/callback?code=${encodeURIComponent(code)}`;
 
       return res.redirect(callbackUrl);
     } catch (error) {
@@ -63,5 +99,29 @@ router.get(
     }
   },
 );
+
+router.post("/google/exchange", (req, res) => {
+  const code = typeof req.body?.code === "string" ? req.body.code : "";
+  if (!code) {
+    return res.status(400).json({
+      success: false,
+      message: "Mã xác thực không hợp lệ",
+    });
+  }
+
+  const payload = consumeOauthExchangeCode(code);
+  if (!payload) {
+    return res.status(400).json({
+      success: false,
+      message: "Mã xác thực đã hết hạn hoặc không tồn tại",
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    accessToken: payload.accessToken,
+    refreshToken: payload.refreshToken,
+  });
+});
 
 export default router;
