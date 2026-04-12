@@ -1,15 +1,9 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
+import { getAllowedCorsOrigins } from "../config/corsOrigins.js";
 
 let ioInstance = null;
-
-const getAllowedOrigins = () =>
-  [
-    process.env.CLIENT_URL || "https://mibanhbao-client-v1.vercel.app",
-    process.env.ADMIN_URL || "https://mibanhbao-admin.vercel.app",
-    process.env.FRONTEND_URL,
-  ].filter(Boolean);
 
 const extractToken = (socket) => {
   const authToken = socket.handshake.auth?.token;
@@ -124,7 +118,9 @@ export const initSocketServer = (httpServer) => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: getAllowedOrigins(),
+      origin: getAllowedCorsOrigins({
+        isProduction: process.env.NODE_ENV === "production",
+      }),
       credentials: true,
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization", "Content-Type", "token"],

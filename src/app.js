@@ -16,6 +16,7 @@ import dashboardRouter from "./routes/dashboardRoute.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
+import { getAllowedCorsOrigins } from "./config/corsOrigins.js";
 import "dotenv/config";
 
 // Create Express app
@@ -30,43 +31,14 @@ if (!sessionSecret) {
   console.warn("SESSION_SECRET is not set. Using development fallback secret.");
 }
 
-// CORS configuration
-const normalizeOrigin = (value) => {
-  if (!value || typeof value !== "string") return null;
+const allowedOrigins = getAllowedCorsOrigins({ isProduction });
 
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
+const normalizeOrigin = (origin) => {
+  if (!origin || typeof origin !== "string") return null;
   try {
-    return new URL(trimmed).origin;
+    return new URL(origin).origin;
   } catch {
-    try {
-      return new URL(`https://${trimmed}`).origin;
-    } catch {
-      return null;
-    }
-  }
-};
-
-const allowedOrigins = [
-  process.env.CLIENT_URL || "https://mibanhbao-client-v1.vercel.app",
-  process.env.ADMIN_URL || "https://mibanhbao-admin.vercel.app",
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_FRONTEND_URL,
-]
-  .map(normalizeOrigin)
-  .filter(Boolean);
-
-const isAllowedVercelAdminOrigin = (origin) => {
-  try {
-    const { hostname, protocol } = new URL(origin);
-    return (
-      protocol === "https:" &&
-      (hostname === "mibanhbao-admin.vercel.app" ||
-        hostname.endsWith("-mibanhbao-admin.vercel.app"))
-    );
-  } catch {
-    return false;
+    return null;
   }
 };
 
@@ -87,10 +59,7 @@ app.use(
 
       const normalizedOrigin = normalizeOrigin(origin);
 
-      if (
-        (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) ||
-        isAllowedVercelAdminOrigin(origin)
-      ) {
+      if (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         console.warn(`[CORS] Blocked origin: ${origin}`);

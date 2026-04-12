@@ -4,7 +4,8 @@
  */
 import axios from "axios";
 
-const API_BASE = "http://localhost:4000/api/dashboard";
+const rawApiBase = process.env.API_BASE_URL || "http://localhost:4000";
+const API_BASE = `${rawApiBase.replace(/\/+$/, "")}/api/dashboard`;
 
 const mockToken =
   "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0ZXN0LmNvbSIsInJvbGUiOiJBRE1JTiJ9.test";

@@ -2,7 +2,7 @@
 # Test Order API Endpoints
 # Usage: ./test-order-api.sh
 
-BASE_URL="http://localhost:4000"
+BASE_URL="${API_BASE_URL:-http://localhost:4000}"
 CONTENT_TYPE="Content-Type: application/json"
 
 echo "🧪 Testing Order API Endpoints"

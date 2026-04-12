@@ -524,10 +524,16 @@ chmod +x test-order-api.sh
 
 ### Manual Testing Flow
 
+Set API base URL once:
+
+```bash
+export API_BASE_URL=http://localhost:4000
+```
+
 1. **Login/Register User:**
 
 ```bash
-curl -X POST http://localhost:4000/auth/register \
+curl -X POST $API_BASE_URL/auth/register \
   -H 'Content-Type: application/json' \
   -d '{
     "name": "Test User",
@@ -540,7 +546,7 @@ curl -X POST http://localhost:4000/auth/register \
 2. **Add Items to Cart:**
 
 ```bash
-curl -X POST http://localhost:4000/api/cart/items \
+curl -X POST $API_BASE_URL/api/cart/items \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer YOUR_TOKEN' \
   -d '{
@@ -553,7 +559,7 @@ curl -X POST http://localhost:4000/api/cart/items \
 3. **Create Address:**
 
 ```bash
-curl -X POST http://localhost:4000/api/user/address \
+curl -X POST $API_BASE_URL/api/user/address \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer YOUR_TOKEN' \
   -d '{
@@ -569,7 +575,7 @@ curl -X POST http://localhost:4000/api/user/address \
 4. **Create Order:**
 
 ```bash
-curl -X POST http://localhost:4000/api/order/create \
+curl -X POST $API_BASE_URL/api/order/create \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer YOUR_TOKEN' \
   -d '{
@@ -582,14 +588,14 @@ curl -X POST http://localhost:4000/api/order/create \
 5. **Check Order Status:**
 
 ```bash
-curl http://localhost:4000/api/order/1 \
+curl $API_BASE_URL/api/order/1 \
   -H 'Authorization: Bearer YOUR_TOKEN'
 ```
 
 6. **Cancel Order:**
 
 ```bash
-curl -X POST http://localhost:4000/api/order/1/cancel \
+curl -X POST $API_BASE_URL/api/order/1/cancel \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer YOUR_TOKEN' \
   -d '{

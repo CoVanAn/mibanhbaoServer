@@ -2,7 +2,7 @@
 # Complete Order Flow Test
 # Test full order creation flow with real data
 
-BASE_URL="http://localhost:4000"
+BASE_URL="${API_BASE_URL:-http://localhost:4000}"
 CONTENT_TYPE="Content-Type: application/json"
 
 echo "🔍 Checking Order API Implementation Against Database Schema"
