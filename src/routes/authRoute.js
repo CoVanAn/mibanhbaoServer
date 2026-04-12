@@ -8,6 +8,21 @@ const router = express.Router();
 const oauthCodeStore = new Map();
 const OAUTH_CODE_TTL_MS = 2 * 60 * 1000;
 
+const resolveFrontendBaseUrl = () => {
+  const fallbackUrl = "http://localhost:3000";
+  const rawFrontendUrl = process.env.FRONTEND_URL || fallbackUrl;
+
+  try {
+    const parsed = new URL(rawFrontendUrl);
+    parsed.search = "";
+    parsed.hash = "";
+    parsed.pathname = parsed.pathname.replace(/\/+$/, "");
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return fallbackUrl;
+  }
+};
+
 const cleanupExpiredOauthCodes = () => {
   const now = Date.now();
   for (const [code, value] of oauthCodeStore.entries()) {
@@ -86,15 +101,18 @@ router.get(
       const code = createOauthExchangeCode({ accessToken, refreshToken });
 
       // Redirect with one-time opaque code instead of tokens to avoid URL token leakage
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-      const callbackUrl = `${frontendUrl}/api/auth/google/callback?code=${encodeURIComponent(code)}`;
+      const frontendBaseUrl = resolveFrontendBaseUrl();
+      const callbackUrl = new URL("api/auth/google/callback", `${frontendBaseUrl}/`);
+      callbackUrl.searchParams.set("code", code);
 
-      return res.redirect(callbackUrl);
+      return res.redirect(callbackUrl.toString());
     } catch (error) {
       console.error("[Google OAuth Callback] Error:", error);
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const frontendBaseUrl = resolveFrontendBaseUrl();
+      const errorUrl = new URL("api/auth/google/callback", `${frontendBaseUrl}/`);
+      errorUrl.searchParams.set("error", "server_error");
       return res.redirect(
-        `${frontendUrl}/api/auth/google/callback?error=server_error`,
+        errorUrl.toString(),
       );
     }
   },
