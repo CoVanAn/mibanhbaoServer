@@ -102,18 +102,22 @@ router.get(
 
       // Redirect with one-time opaque code instead of tokens to avoid URL token leakage
       const frontendBaseUrl = resolveFrontendBaseUrl();
-      const callbackUrl = new URL("api/auth/google/callback", `${frontendBaseUrl}/`);
+      const callbackUrl = new URL(
+        "api/auth/google/callback",
+        `${frontendBaseUrl}/`,
+      );
       callbackUrl.searchParams.set("code", code);
 
       return res.redirect(callbackUrl.toString());
     } catch (error) {
       console.error("[Google OAuth Callback] Error:", error);
       const frontendBaseUrl = resolveFrontendBaseUrl();
-      const errorUrl = new URL("api/auth/google/callback", `${frontendBaseUrl}/`);
-      errorUrl.searchParams.set("error", "server_error");
-      return res.redirect(
-        errorUrl.toString(),
+      const errorUrl = new URL(
+        "api/auth/google/callback",
+        `${frontendBaseUrl}/`,
       );
+      errorUrl.searchParams.set("error", "server_error");
+      return res.redirect(errorUrl.toString());
     }
   },
 );
