@@ -6,10 +6,10 @@ import { parsePositiveInt } from "../../utils/id.js";
 export const updateCategory = async (req, res, next) => {
   try {
     const id = parsePositiveInt(req.params.id);
-    if (!id) return res.status(400).json({ message: "invalid id" });
+    if (!id) return res.status(400).json({ message: "ID không hợp lệ" });
 
     const existing = await prisma.category.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ message: "Not found" });
+    if (!existing) return res.status(404).json({ message: "Không tìm thấy" });
 
     const { name, parentId, position, isActive } = req.body;
 
@@ -30,17 +30,17 @@ export const updateCategory = async (req, res, next) => {
       if (pid !== null && Number.isNaN(pid)) {
         return res
           .status(400)
-          .json({ message: "parentId must be a number or null" });
+          .json({ message: "parentId phải là số hoặc null" });
       }
       if (pid) {
         const ok = await validateNoCycle(pid, id);
         if (!ok)
           return res
             .status(400)
-            .json({ message: "Invalid parent: cycle detected" });
+            .json({ message: "Danh mục cha không hợp lệ: phát hiện vòng lặp" });
         const parent = await prisma.category.findUnique({ where: { id: pid } });
         if (!parent)
-          return res.status(400).json({ message: "parentId not found" });
+          return res.status(400).json({ message: "Không tìm thấy parentId" });
       }
       data.parentId = pid;
     }
@@ -56,7 +56,7 @@ export const updateCategory = async (req, res, next) => {
 export const removeCategory = async (req, res, next) => {
   try {
     const id = parsePositiveInt(req.params.id);
-    if (!id) return res.status(400).json({ message: "invalid id" });
+    if (!id) return res.status(400).json({ message: "ID không hợp lệ" });
 
     // Block delete if category has children
     const [childCount, linkCount] = await Promise.all([

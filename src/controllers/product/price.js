@@ -16,17 +16,17 @@ export const setVariantPrice = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     const { amount, startsAt, endsAt } = req.body;
     if (amount === undefined || amount === null) {
-      return res.status(400).json({ message: "amount required" });
+      return res.status(400).json({ message: "Bắt buộc truyền amount" });
     }
 
     const amountStr = String(amount).trim();
     if (isNaN(Number(amountStr))) {
-      return res.status(400).json({ message: "amount must be a number" });
+      return res.status(400).json({ message: "amount phải là số" });
     }
 
     try {
@@ -59,7 +59,7 @@ export const getVariantPrices = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     // Use helper function for better price ordering
@@ -85,7 +85,7 @@ export const updateVariantPrice = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     const existingPrice = await prisma.price.findUnique({
@@ -95,7 +95,7 @@ export const updateVariantPrice = async (req, res, next) => {
     if (!existingPrice || existingPrice.variantId !== vid) {
       return res
         .status(404)
-        .json({ message: "Price not found for this variant" });
+        .json({ message: "Không tìm thấy giá của biến thể này" });
     }
 
     const { amount, startsAt, endsAt, isActive } = req.body;
@@ -105,7 +105,7 @@ export const updateVariantPrice = async (req, res, next) => {
     if (amount !== undefined && amount !== null) {
       const amountStr = String(amount).trim();
       if (isNaN(Number(amountStr))) {
-        return res.status(400).json({ message: "amount must be a number" });
+        return res.status(400).json({ message: "amount phải là số" });
       }
       updateData.amount = amountStr;
     }
@@ -160,7 +160,7 @@ export const deleteVariantPrice = async (req, res, next) => {
     // Kiểm tra variant tồn tại
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     // Kiểm tra price tồn tại
@@ -171,7 +171,7 @@ export const deleteVariantPrice = async (req, res, next) => {
     if (!existingPrice || existingPrice.variantId !== vid) {
       return res
         .status(404)
-        .json({ message: "Price not found for this variant" });
+        .json({ message: "Không tìm thấy giá của biến thể này" });
     }
 
     // Kiểm tra không xóa giá cuối cùng nếu nó là giá active duy nhất
@@ -196,7 +196,7 @@ export const deleteVariantPrice = async (req, res, next) => {
 
     return res.json({
       success: true,
-      message: "Price deleted successfully",
+      message: "Xóa mức giá thành công",
       price: deletedPrice,
     });
   } catch (err) {

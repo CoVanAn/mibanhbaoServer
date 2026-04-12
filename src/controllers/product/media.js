@@ -27,14 +27,14 @@ export const addProductMedia = async (req, res, next) => {
     const pid = req.params.id;
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     const files = Array.isArray(req.files)
       ? req.files
       : [...(req.files?.images || []), ...(req.files?.image || [])];
 
     if (!files.length) {
-      return res.status(400).json({ message: "No files provided" });
+      return res.status(400).json({ message: "Không có tệp nào được cung cấp" });
     }
 
     const uploads = [];
@@ -82,7 +82,7 @@ export const addProductMedia = async (req, res, next) => {
       throw error;
     }
 
-    return res.json({ success: true, message: "Media added" });
+    return res.json({ success: true, message: "Thêm phương tiện thành công" });
   } catch (err) {
     return next(err);
   }
@@ -96,7 +96,7 @@ export const deleteProductMedia = async (req, res, next) => {
 
     const media = await prisma.productMedia.findUnique({ where: { id: mid } });
     if (!media || media.productId !== pid) {
-      return res.status(404).json({ message: "Media not found" });
+      return res.status(404).json({ message: "Không tìm thấy phương tiện" });
     }
 
     await prisma.productMedia.delete({ where: { id: mid } });
@@ -113,7 +113,7 @@ export const deleteProductMedia = async (req, res, next) => {
       }
     }
 
-    return res.json({ success: true, message: "Media deleted" });
+    return res.json({ success: true, message: "Xóa phương tiện thành công" });
   } catch (err) {
     return next(err);
   }
@@ -125,7 +125,7 @@ export const reorderProductMedia = async (req, res, next) => {
     const pid = req.params.id;
 
     const product = await prisma.product.findUnique({ where: { id: pid } });
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     // Accept either { mediaIds: [...] } or { order: [...] } or just [...]
     let mediaIds;
@@ -136,14 +136,14 @@ export const reorderProductMedia = async (req, res, next) => {
     } else if (req.body.order) {
       mediaIds = req.body.order;
     } else {
-      return res.status(400).json({ message: "mediaIds array required" });
+      return res.status(400).json({ message: "Bắt buộc truyền mảng mediaIds" });
     }
 
     if (!Array.isArray(mediaIds)) {
-      return res.status(400).json({ message: "mediaIds must be an array" });
+      return res.status(400).json({ message: "mediaIds phải là mảng" });
     }
     if (new Set(mediaIds).size !== mediaIds.length) {
-      return res.status(400).json({ message: "mediaIds contains duplicates" });
+      return res.status(400).json({ message: "mediaIds chứa phần tử trùng lặp" });
     }
 
     // Verify all media belong to this product
@@ -151,7 +151,7 @@ export const reorderProductMedia = async (req, res, next) => {
       where: { productId: pid, id: { in: mediaIds } },
     });
     if (medias.length !== mediaIds.length) {
-      return res.status(400).json({ message: "Some media not found" });
+      return res.status(400).json({ message: "Không tìm thấy một số phương tiện" });
     }
 
     // Update positions atomically
@@ -164,7 +164,7 @@ export const reorderProductMedia = async (req, res, next) => {
       ),
     );
 
-    return res.json({ success: true, message: "Media reordered" });
+    return res.json({ success: true, message: "Sắp xếp lại phương tiện thành công" });
   } catch (err) {
     return next(err);
   }
@@ -178,7 +178,7 @@ export const updateProductMedia = async (req, res, next) => {
 
     const media = await prisma.productMedia.findUnique({ where: { id: mid } });
     if (!media || media.productId !== pid) {
-      return res.status(404).json({ message: "Media not found" });
+      return res.status(404).json({ message: "Không tìm thấy phương tiện" });
     }
 
     const { alt, position } = req.body;
@@ -189,14 +189,14 @@ export const updateProductMedia = async (req, res, next) => {
       if (Number.isNaN(parsedPosition) || parsedPosition < 0) {
         return res
           .status(400)
-          .json({ message: "position must be a non-negative number" });
+          .json({ message: "Vị trí phải là số không âm" });
       }
       data.position = parsedPosition;
     }
 
     await prisma.productMedia.update({ where: { id: mid }, data });
 
-    return res.json({ success: true, message: "Media updated" });
+    return res.json({ success: true, message: "Cập nhật phương tiện thành công" });
   } catch (err) {
     return next(err);
   }

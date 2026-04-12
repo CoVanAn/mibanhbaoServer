@@ -39,15 +39,15 @@ export const errorHandler = (err, req, res, next) => {
       statusCode = HTTP_STATUS.CONFLICT;
       code = "ALREADY_EXISTS";
     }
-    // P2025: Record not found
+    // P2025: Không tìm thấy bản ghi
     else if (err.code === "P2025") {
-      message = "Record not found";
+      message = "Không tìm thấy bản ghi";
       statusCode = HTTP_STATUS.NOT_FOUND;
       code = "NOT_FOUND";
     }
     // P2003: Foreign key constraint failed
     else if (err.code === "P2003") {
-      message = "Related record not found";
+      message = "Không tìm thấy bản ghi liên quan";
       statusCode = HTTP_STATUS.BAD_REQUEST;
     } else {
       message = "Database operation failed";
@@ -56,7 +56,7 @@ export const errorHandler = (err, req, res, next) => {
   // Handle JWT errors
   else if (err.name === "JsonWebTokenError") {
     statusCode = HTTP_STATUS.UNAUTHORIZED;
-    message = "Invalid token";
+    message = "Token không hợp lệ";
     code = "INVALID_TOKEN";
   } else if (err.name === "TokenExpiredError") {
     statusCode = HTTP_STATUS.UNAUTHORIZED;
@@ -66,7 +66,7 @@ export const errorHandler = (err, req, res, next) => {
   // Handle validation errors (Zod)
   else if (err.name === "ZodError") {
     statusCode = HTTP_STATUS.VALIDATION_ERROR;
-    message = "Validation failed";
+    message = "Dữ liệu không hợp lệ";
     code = "VALIDATION_ERROR";
     const zodIssues = err.errors || err.issues || [];
     errors = zodIssues.map((e) => ({

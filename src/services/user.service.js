@@ -252,7 +252,7 @@ export class UserService {
   ) {
     if (!name || !phone || !addressLine || !province || !district || !ward) {
       throw new BadRequestError(
-        "Required fields: name, phone, addressLine, province, district, ward",
+        "Các trường bắt buộc: name, phone, addressLine, province, district, ward",
       );
     }
     return prisma.address.create({

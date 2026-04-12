@@ -3,7 +3,7 @@ import { createControllerErrorHandler } from "../../utils/controllerError.js";
 import { parsePositiveInt } from "../../utils/id.js";
 
 const handleError = createControllerErrorHandler({
-  defaultMessage: "Server error",
+  defaultMessage: "Lỗi máy chủ",
   includeOperationalErrors: true,
   includeOperationalDetails: true,
   includeErrorDetails: true,

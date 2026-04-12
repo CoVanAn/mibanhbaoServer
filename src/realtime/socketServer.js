@@ -69,7 +69,7 @@ const registerConnectionHandlers = (io) => {
         const orderId = Number(payload?.orderId);
         if (!Number.isInteger(orderId) || orderId <= 0) {
           if (typeof ack === "function") {
-            ack({ success: false, message: "Invalid orderId" });
+            ack({ success: false, message: "orderId không hợp lệ" });
           }
           return;
         }
@@ -77,7 +77,7 @@ const registerConnectionHandlers = (io) => {
         const allowed = await canAccessOrderRoom({ userId, role, orderId });
         if (!allowed) {
           if (typeof ack === "function") {
-            ack({ success: false, message: "Forbidden" });
+            ack({ success: false, message: "Không có quyền truy cập" });
           }
           return;
         }
@@ -88,7 +88,7 @@ const registerConnectionHandlers = (io) => {
         }
       } catch (error) {
         if (typeof ack === "function") {
-          ack({ success: false, message: "Unable to subscribe" });
+          ack({ success: false, message: "Không thể đăng ký theo dõi" });
         }
       }
     });
@@ -132,14 +132,14 @@ export const initSocketServer = (httpServer) => {
     try {
       const token = extractToken(socket);
       if (!token) {
-        return next(new Error("Unauthorized"));
+        return next(new Error("Chưa được xác thực"));
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.data.user = decoded;
       return next();
     } catch (error) {
-      return next(new Error("Unauthorized"));
+      return next(new Error("Chưa được xác thực"));
     }
   });
 

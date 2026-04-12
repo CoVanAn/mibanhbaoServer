@@ -12,15 +12,15 @@ export async function validateCoupon(coupon, subtotal, userId = null) {
   const now = new Date();
 
   if (!coupon.isActive) {
-    return { valid: false, discount: 0, message: "Coupon is inactive" };
+    return { valid: false, discount: 0, message: "Mã giảm giá đã bị vô hiệu hóa" };
   }
 
   if (coupon.startsAt && coupon.startsAt > now) {
-    return { valid: false, discount: 0, message: "Coupon not yet valid" };
+    return { valid: false, discount: 0, message: "Mã giảm giá chưa đến thời gian áp dụng" };
   }
 
   if (coupon.endsAt && coupon.endsAt < now) {
-    return { valid: false, discount: 0, message: "Coupon has expired" };
+    return { valid: false, discount: 0, message: "Mã giảm giá đã hết hạn" };
   }
 
   if (coupon.minSubtotal && subtotal < coupon.minSubtotal) {
@@ -38,7 +38,7 @@ export async function validateCoupon(coupon, subtotal, userId = null) {
     return {
       valid: false,
       discount: 0,
-      message: "Coupon has reached its usage limit",
+      message: "Mã giảm giá đã đạt giới hạn sử dụng",
     };
   }
 
@@ -55,7 +55,7 @@ export async function validateCoupon(coupon, subtotal, userId = null) {
       return {
         valid: false,
         discount: 0,
-        message: "You have reached the usage limit for this coupon",
+        message: "Bạn đã đạt giới hạn sử dụng mã giảm giá này",
       };
     }
   }

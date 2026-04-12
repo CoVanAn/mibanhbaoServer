@@ -13,7 +13,7 @@ export const getInventory = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     const inventory = await prisma.inventory.findUnique({
@@ -37,7 +37,7 @@ export const updateInventory = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     const { quantity, safetyStock } = req.body;
@@ -46,7 +46,7 @@ export const updateInventory = async (req, res, next) => {
     if (quantity === undefined && safetyStock === undefined) {
       return res
         .status(400)
-        .json({ message: "quantity or safetyStock required" });
+        .json({ message: "Bắt buộc truyền quantity hoặc safetyStock" });
     }
 
     // Prepare update data
@@ -59,7 +59,7 @@ export const updateInventory = async (req, res, next) => {
       if (isNaN(qty) || qty < 0) {
         return res
           .status(400)
-          .json({ message: "quantity must be a non-negative number" });
+          .json({ message: "quantity phải là số không âm" });
       }
       updateData.quantity = qty;
       createData.quantity = qty;
@@ -71,7 +71,7 @@ export const updateInventory = async (req, res, next) => {
       if (isNaN(safety) || safety < 0) {
         return res
           .status(400)
-          .json({ message: "safetyStock must be a non-negative number" });
+          .json({ message: "safetyStock phải là số không âm" });
       }
       updateData.safetyStock = safety;
       createData.safetyStock = safety;

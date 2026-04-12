@@ -13,7 +13,8 @@ export const createVariant = async (req, res, next) => {
     const pid = req.params.id;
 
     const product = await getExistingProduct(pid);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product)
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     const {
       name,
@@ -22,7 +23,8 @@ export const createVariant = async (req, res, next) => {
       initialStock = 0,
       safetyStock = 0,
     } = req.body;
-    if (!name) return res.status(400).json({ message: "name required" });
+    if (!name)
+      return res.status(400).json({ message: "Tên biến thể là bắt buộc" });
 
     const variant = await prisma.productVariant.create({
       data: {
@@ -50,7 +52,7 @@ export const updateVariant = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     const { name, sku, isActive } = req.body;
@@ -61,7 +63,7 @@ export const updateVariant = async (req, res, next) => {
 
     await prisma.productVariant.update({ where: { id: vid }, data });
 
-    return res.json({ success: true, message: "Variant updated" });
+    return res.json({ success: true, message: "Cập nhật biến thể thành công" });
   } catch (err) {
     return next(err);
   }
@@ -75,7 +77,7 @@ export const deleteVariant = async (req, res, next) => {
 
     const { variant } = await getVariantWithOwnership(vid, pid);
     if (!variant) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     // Check if it's the last variant
@@ -85,7 +87,7 @@ export const deleteVariant = async (req, res, next) => {
     if (variantCount <= 1) {
       return res
         .status(400)
-        .json({ message: "Cannot delete last variant of product" });
+        .json({ message: "Không thể xóa biến thể cuối cùng của sản phẩm" });
     }
 
     // Clean up cart items that reference this variant
@@ -95,7 +97,7 @@ export const deleteVariant = async (req, res, next) => {
 
     await prisma.productVariant.delete({ where: { id: vid } });
 
-    return res.json({ success: true, message: "Variant deleted" });
+    return res.json({ success: true, message: "Xóa biến thể thành công" });
   } catch (err) {
     return next(err);
   }
@@ -107,7 +109,8 @@ export const getProductVariants = async (req, res, next) => {
     const pid = req.params.id;
 
     const product = await getExistingProduct(pid);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product)
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     const variants = await prisma.productVariant.findMany({
       where: { productId: pid },
@@ -156,14 +159,14 @@ export const getVariant = async (req, res, next) => {
     });
 
     if (!variantWithDetails) {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Không tìm thấy biến thể" });
     }
 
     // Nếu có productId trong URL, kiểm tra match
     if (pid && variantWithDetails.productId !== pid) {
       return res
         .status(404)
-        .json({ message: "Variant not found for this product" });
+        .json({ message: "Không tìm thấy biến thể thuộc sản phẩm này" });
     }
 
     return res.json({ success: true, variant: variantWithDetails });

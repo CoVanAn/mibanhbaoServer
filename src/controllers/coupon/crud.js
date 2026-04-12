@@ -23,7 +23,7 @@ export async function createCoupon(req, res, next) {
     if (existing) {
       return res
         .status(409)
-        .json({ success: false, message: "Coupon code already exists" });
+        .json({ success: false, message: "Mã giảm giá đã tồn tại" });
     }
 
     const coupon = await prisma.coupon.create({
@@ -88,7 +88,7 @@ export async function getCoupon(req, res, next) {
     if (!coupon) {
       return res
         .status(404)
-        .json({ success: false, message: "Coupon not found" });
+        .json({ success: false, message: "Không tìm thấy mã giảm giá" });
     }
     return res.json({ success: true, data: coupon });
   } catch (err) {
@@ -115,7 +115,7 @@ export async function updateCoupon(req, res, next) {
     if (err.code === "P2025") {
       return res
         .status(404)
-        .json({ success: false, message: "Coupon not found" });
+        .json({ success: false, message: "Không tìm thấy mã giảm giá" });
     }
     return next(err);
   }
@@ -129,12 +129,12 @@ export async function deleteCoupon(req, res, next) {
   try {
     const { id } = req.params;
     await prisma.coupon.delete({ where: { id } });
-    return res.json({ success: true, message: "Coupon deleted" });
+    return res.json({ success: true, message: "Xóa mã giảm giá thành công" });
   } catch (err) {
     if (err.code === "P2025") {
       return res
         .status(404)
-        .json({ success: false, message: "Coupon not found" });
+        .json({ success: false, message: "Không tìm thấy mã giảm giá" });
     }
     return next(err);
   }
@@ -151,7 +151,7 @@ export async function getCouponRedemptions(req, res, next) {
     if (!coupon) {
       return res
         .status(404)
-        .json({ success: false, message: "Coupon not found" });
+        .json({ success: false, message: "Không tìm thấy mã giảm giá" });
     }
 
     const redemptions = await prisma.couponRedemption.findMany({

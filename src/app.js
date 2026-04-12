@@ -26,7 +26,7 @@ const sessionSecret = process.env.SESSION_SECRET;
 
 if (!sessionSecret) {
   if (isProduction) {
-    throw new Error("SESSION_SECRET is required in production");
+    throw new Error("SESSION_SECRET là bắt buộc trong môi trường production");
   }
   console.warn("SESSION_SECRET is not set. Using development fallback secret.");
 }

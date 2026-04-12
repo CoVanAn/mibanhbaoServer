@@ -5,8 +5,8 @@ const promotionTypeEnum = z.enum(["PERCENT", "FIXED"]);
 const idSchema = z.object({
   id: z.coerce
     .number()
-    .int("Coupon ID must be an integer")
-    .positive("Coupon ID must be positive"),
+    .int("ID phải là số nguyên")
+    .positive("ID phải là số dương"),
 });
 
 export const createCouponSchema = z.object({
@@ -50,13 +50,13 @@ export const validateCouponSchema = z.object({
 export const couponFilterSchema = z.object({
   page: z.coerce
     .number()
-    .int("Page must be an integer")
-    .positive("Page must be greater than 0")
+    .int("Trang phải là số nguyên")
+    .positive("Trang phải lớn hơn 0")
     .default(1),
   limit: z.coerce
     .number()
-    .int("Limit must be an integer")
-    .positive("Limit must be greater than 0")
+    .int("Giới hạn phải là số nguyên")
+    .positive("Giới hạn phải lớn hơn 0")
     .max(100, "Limit cannot exceed 100")
     .default(20),
   isActive: z

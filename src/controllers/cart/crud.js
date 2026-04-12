@@ -55,14 +55,14 @@ export async function mergeCart(req, res, next) {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required",
+        message: "Yêu cầu đăng nhập",
       });
     }
 
     if (!guestToken) {
       return res.status(400).json({
         success: false,
-        message: "guestToken is required",
+        message: "Bắt buộc có guestToken",
       });
     }
 
@@ -70,7 +70,7 @@ export async function mergeCart(req, res, next) {
 
     res.status(200).json({
       success: true,
-      message: "Carts merged successfully",
+      message: "Gộp giỏ hàng thành công",
       cart: formatCartResponse(mergedCart),
     });
   } catch (error) {
@@ -92,7 +92,7 @@ export async function applyCoupon(req, res, next) {
     if (!couponCode) {
       return res.status(400).json({
         success: false,
-        message: "Coupon code is required",
+        message: "Bắt buộc nhập mã giảm giá",
       });
     }
 
@@ -101,7 +101,7 @@ export async function applyCoupon(req, res, next) {
       userId,
       guestToken,
       messages: {
-        couponNotFound: "Invalid coupon code",
+        couponNotFound: "Mã giảm giá không hợp lệ",
       },
     });
 
@@ -114,7 +114,7 @@ export async function applyCoupon(req, res, next) {
 
     res.status(200).json({
       success: true,
-      message: "Coupon applied successfully",
+      message: "Áp dụng mã giảm giá thành công",
       cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {
@@ -146,7 +146,7 @@ export async function removeCoupon(req, res, next) {
 
     res.status(200).json({
       success: true,
-      message: "Coupon removed",
+      message: "Đã gỡ mã giảm giá",
       cart: formatCartResponse(result.updatedCart),
     });
   } catch (error) {

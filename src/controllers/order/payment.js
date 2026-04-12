@@ -2,7 +2,7 @@ import orderService from "../../services/order.service.js";
 import { createControllerErrorHandler } from "../../utils/controllerError.js";
 
 const handleError = createControllerErrorHandler({
-  defaultMessage: "Server error",
+  defaultMessage: "Lỗi máy chủ",
   includeOperationalErrors: true,
   includeOperationalDetails: true,
   includeErrorDetails: true,
@@ -25,7 +25,7 @@ export async function createPayment(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: "Payment created",
+      message: "Tạo thanh toán thành công",
       payment,
     });
   } catch (error) {
@@ -49,7 +49,7 @@ export async function updatePaymentStatus(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Payment status updated",
+      message: "Cập nhật trạng thái thanh toán thành công",
       payment,
     });
   } catch (error) {

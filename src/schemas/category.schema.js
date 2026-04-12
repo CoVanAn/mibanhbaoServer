@@ -11,30 +11,30 @@ import { z } from "zod";
  */
 export const createCategorySchema = z.object({
   name: z
-    .string({ required_error: "Category name is required" })
+    .string({ required_error: "Tên danh mục là bắt buộc" })
     .trim()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters"),
+    .min(2, "Tên danh mục phải có ít nhất 2 ký tự")
+    .max(100, "Tên danh mục không được vượt quá 100 ký tự"),
   slug: z
     .string()
     .trim()
     .toLowerCase()
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
+      "Slug chỉ được chứa chữ thường, số và dấu gạch ngang",
     )
     .optional(),
   description: z.string().trim().max(500).optional(),
   parentId: z
     .number()
-    .int("Parent ID must be an integer")
-    .positive("Parent ID must be positive")
+    .int("ID danh mục cha phải là số nguyên")
+    .positive("ID danh mục cha phải lớn hơn 0")
     .nullable()
     .optional(),
   position: z.coerce
     .number()
-    .int("Position must be an integer")
-    .min(0, "Position cannot be negative")
+    .int("Vị trí phải là số nguyên")
+    .min(0, "Vị trí không thể là số âm")
     .default(0),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -49,8 +49,8 @@ export const updateCategorySchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
+    .min(2, "Tên danh mục phải có ít nhất 2 ký tự")
+    .max(100, "Tên danh mục không được vượt quá 100 ký tự")
     .optional(),
   slug: z
     .string()
@@ -58,19 +58,19 @@ export const updateCategorySchema = z.object({
     .toLowerCase()
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
+      "Slug chỉ được chứa chữ thường, số và dấu gạch ngang",
     )
     .optional(),
   description: z.string().trim().max(500).optional(),
   parentId: z
     .number()
-    .int("Parent ID must be an integer")
-    .positive("Parent ID must be positive")
+    .int("ID danh mục cha phải là số nguyên")
+    .positive("ID danh mục cha phải lớn hơn 0")
     .nullable()
     .optional(),
   position: z.coerce
     .number()
-    .int("Position must be an integer")
+    .int("Vị trí phải là số nguyên")
     .min(0, "Position cannot be negative")
     .optional(),
   isActive: z.boolean().optional(),
@@ -84,8 +84,8 @@ export const updateCategorySchema = z.object({
 export const categoryIdSchema = z.object({
   id: z.coerce
     .number()
-    .int("Category ID must be an integer")
-    .positive("Category ID must be positive"),
+    .int("ID danh mục phải là số nguyên")
+    .positive("ID danh mục phải lớn hơn 0"),
 });
 
 /**
@@ -94,7 +94,7 @@ export const categoryIdSchema = z.object({
  */
 export const categorySlugSchema = z.object({
   slug: z
-    .string({ required_error: "Slug is required" })
+    .string({ required_error: "Slug là bắt buộc" })
     .trim()
     .toLowerCase()
     .regex(
@@ -110,7 +110,7 @@ export const categorySlugSchema = z.object({
 export const assignProductsSchema = z.object({
   productIds: z
     .array(z.number().int().positive())
-    .min(1, "At least one product ID is required"),
+    .min(1, "Cần ít nhất một ID sản phẩm"),
 });
 
 /**
@@ -125,5 +125,5 @@ export const reorderCategoriesSchema = z.object({
         position: z.number().int().min(0),
       }),
     )
-    .min(1, "At least one category order is required"),
+    .min(1, "Cần ít nhất một thứ tự danh mục"),
 });

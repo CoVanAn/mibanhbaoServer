@@ -145,7 +145,7 @@ export const updateProduct = async (req, res, next) => {
     return res.json({
       success: true,
       id: product.id,
-      message: "Product updated successfully",
+      message: "Cập nhật sản phẩm thành công",
       product,
     });
   } catch (error) {
@@ -178,7 +178,7 @@ export const deleteProduct = async (req, res, next) => {
     }
 
     await prisma.product.delete({ where: { id: pid } });
-    return res.json({ success: true, message: "Product deleted" });
+    return res.json({ success: true, message: "Xóa sản phẩm thành công" });
   } catch (error) {
     next(error);
   }

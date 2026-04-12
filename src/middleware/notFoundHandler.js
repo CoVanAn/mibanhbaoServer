@@ -7,7 +7,7 @@ import { HTTP_STATUS, ERROR_CODES } from "../constants/index.js";
 export const notFoundHandler = (req, res, next) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
     success: false,
-    error: `Route ${req.method} ${req.url} not found`,
+    error: `Không tìm thấy đường dẫn ${req.method} ${req.url}`,
     code: ERROR_CODES.NOT_FOUND,
   });
 };

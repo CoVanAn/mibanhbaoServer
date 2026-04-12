@@ -2,7 +2,7 @@ import dashboardService from "../../services/dashboard.service.js";
 import { createControllerErrorHandler } from "../../utils/controllerError.js";
 
 const handleError = createControllerErrorHandler({
-  defaultMessage: "Server error",
+  defaultMessage: "Lỗi máy chủ",
   includeOperationalErrors: false,
   includeErrorDetails: true,
 });

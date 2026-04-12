@@ -71,7 +71,7 @@ const withUpload = (uploader) => (req, res, next) =>
     if (err) {
       return res
         .status(400)
-        .json({ success: false, message: err.message || "Upload error" });
+        .json({ success: false, message: err.message || "Lỗi tải tệp" });
     }
     return next();
   });

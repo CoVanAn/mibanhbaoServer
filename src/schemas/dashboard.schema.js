@@ -5,14 +5,14 @@ const currentYear = new Date().getUTCFullYear();
 export const dashboardOverviewQuerySchema = z.object({
   year: z.coerce
     .number()
-    .int("Year must be an integer")
-    .positive("Year must be greater than 0")
+    .int("Năm phải là số nguyên")
+    .positive("Năm phải lớn hơn 0")
     .default(currentYear),
   quarter: z.coerce
     .number()
-    .int("Quarter must be an integer")
-    .min(1, "Quarter must be between 1 and 4")
-    .max(4, "Quarter must be between 1 and 4")
+    .int("Quý phải là số nguyên")
+    .min(1, "Quý phải nằm trong khoảng 1 đến 4")
+    .max(4, "Quý phải nằm trong khoảng 1 đến 4")
     .default(1),
 });
 
@@ -27,19 +27,19 @@ export const dashboardTopProductsQuerySchema = z
     endDate: z.string().datetime().optional(),
     year: z.coerce
       .number()
-      .int("Year must be an integer")
-      .positive("Year must be greater than 0")
+      .int("Năm phải là số nguyên")
+      .positive("Năm phải lớn hơn 0")
       .optional(),
     quarter: z.coerce
       .number()
-      .int("Quarter must be an integer")
-      .min(1, "Quarter must be between 1 and 4")
-      .max(4, "Quarter must be between 1 and 4")
+      .int("Quý phải là số nguyên")
+      .min(1, "Quý phải nằm trong khoảng 1 đến 4")
+      .max(4, "Quý phải nằm trong khoảng 1 đến 4")
       .optional(),
     limit: z.coerce
       .number()
-      .int("Limit must be an integer")
-      .positive("Limit must be greater than 0")
+      .int("Giới hạn phải là số nguyên")
+      .positive("Giới hạn phải lớn hơn 0")
       .max(100, "Limit cannot exceed 100")
       .default(5),
   })
@@ -50,7 +50,7 @@ export const dashboardTopProductsQuerySchema = z
     if (!hasRange && !hasQuarter) {
       ctx.addIssue({
         code: "custom",
-        message: "Provide either startDate/endDate or year/quarter",
+        message: "Cung cấp startDate/endDate hoặc year/quarter",
       });
     }
   });
@@ -58,8 +58,8 @@ export const dashboardTopProductsQuerySchema = z
 export const dashboardLowStockQuerySchema = z.object({
   limit: z.coerce
     .number()
-    .int("Limit must be an integer")
-    .positive("Limit must be greater than 0")
+    .int("Giới hạn phải là số nguyên")
+    .positive("Giới hạn phải lớn hơn 0")
     .max(100, "Limit cannot exceed 100")
     .default(10),
 });

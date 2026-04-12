@@ -32,7 +32,7 @@ export class ValidationError extends AppError {
  */
 export class AuthenticationError extends AppError {
   constructor(
-    message = "Authentication required",
+    message = "Yêu cầu đăng nhập",
     code = ERROR_CODES.NO_TOKEN,
   ) {
     super(message, HTTP_STATUS.UNAUTHORIZED, code);

@@ -12,10 +12,10 @@ import { z } from "zod";
  */
 export const createVariantSchema = z.object({
   name: z
-    .string({ required_error: "Variant name is required" })
+    .string({ required_error: "Tên biến thể là bắt buộc" })
     .trim()
-    .min(1, "Variant name cannot be empty")
-    .max(100, "Variant name cannot exceed 100 characters"),
+    .min(1, "Tên biến thể không được để trống")
+    .max(100, "Tên biến thể không được vượt quá 100 ký tự"),
   sku: z
     .string()
     .trim()
@@ -23,7 +23,7 @@ export const createVariantSchema = z.object({
     .transform((val) => val || undefined) // Convert empty string to undefined
     .refine(
       (val) => !val || /^[A-Z0-9-]+$/.test(val),
-      "SKU can only contain uppercase letters, numbers, and hyphens",
+      "SKU chỉ được chứa chữ hoa, số và dấu gạch ngang",
     )
     .optional(), // SKU is optional, will be auto-generated if not provided
   barcode: z.string().trim().optional(),
@@ -41,8 +41,8 @@ export const updateVariantSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Variant name cannot be empty")
-    .max(100, "Variant name cannot exceed 100 characters")
+    .min(1, "Tên biến thể không được để trống")
+    .max(100, "Tên biến thể không được vượt quá 100 ký tự")
     .optional(),
   sku: z
     .string()
@@ -50,7 +50,7 @@ export const updateVariantSchema = z.object({
     .toUpperCase()
     .regex(
       /^[A-Z0-9-]+$/,
-      "SKU can only contain uppercase letters, numbers, and hyphens",
+      "SKU chỉ được chứa chữ hoa, số và dấu gạch ngang",
     )
     .optional(),
   barcode: z.string().trim().optional(),
@@ -69,10 +69,10 @@ export const setPriceSchema = z
       (val) => (typeof val === "string" ? parseFloat(val) : val),
       z
         .number({
-          required_error: "Price amount is required",
-          invalid_type_error: "Price must be a number",
+          required_error: "Giá tiền là bắt buộc",
+          invalid_type_error: "Giá tiền phải là số",
         })
-        .positive("Price must be positive"),
+        .positive("Giá tiền phải lớn hơn 0"),
     ),
     startsAt: z.preprocess(
       (val) => (val === null || val === "" ? undefined : val),
@@ -92,7 +92,7 @@ export const setPriceSchema = z
       return true;
     },
     {
-      message: "End date must be after start date",
+      message: "Ngày kết thúc phải sau ngày bắt đầu",
       path: ["endsAt"],
     },
   );
@@ -103,17 +103,17 @@ export const setPriceSchema = z
  */
 export const updateInventorySchema = z
   .object({
-    quantity: z.number().int().min(0, "Quantity cannot be negative").optional(),
+    quantity: z.number().int().min(0, "Số lượng không thể là số âm").optional(),
     safetyStock: z
       .number()
       .int()
-      .min(0, "Safety stock cannot be negative")
+      .min(0, "Stock an toàn không thể là số âm")
       .optional(),
   })
   .refine(
     (data) => data.quantity !== undefined || data.safetyStock !== undefined,
     {
-      message: "quantity or safetyStock required",
+      message: "Bắt buộc truyền quantity hoặc safetyStock",
     },
   );
 
@@ -124,8 +124,8 @@ export const updateInventorySchema = z
 export const productIdSchema = z.object({
   id: z.coerce
     .number()
-    .int("Product ID must be an integer")
-    .positive("Product ID must be positive"),
+    .int("ID sản phẩm phải là số nguyên")
+    .positive("ID sản phẩm phải lớn hơn 0"),
 });
 
 /**
@@ -135,29 +135,29 @@ export const productIdSchema = z.object({
 export const variantIdSchema = z.object({
   variantId: z.coerce
     .number()
-    .int("Variant ID must be an integer")
-    .positive("Variant ID must be positive"),
+    .int("ID biến thể phải là số nguyên")
+    .positive("ID biến thể phải lớn hơn 0"),
 });
 
 export const categoryIdSchema = z.object({
   categoryId: z.coerce
     .number()
-    .int("Category ID must be an integer")
-    .positive("Category ID must be positive"),
+    .int("ID danh mục phải là số nguyên")
+    .positive("ID danh mục phải lớn hơn 0"),
 });
 
 export const mediaIdSchema = z.object({
   mediaId: z.coerce
     .number()
-    .int("Media ID must be an integer")
-    .positive("Media ID must be positive"),
+    .int("ID phương tiện phải là số nguyên")
+    .positive("ID phương tiện phải lớn hơn 0"),
 });
 
 export const priceIdSchema = z.object({
   priceId: z.coerce
     .number()
-    .int("Price ID must be an integer")
-    .positive("Price ID must be positive"),
+    .int("ID mức giá phải là số nguyên")
+    .positive("ID mức giá phải lớn hơn 0"),
 });
 
 export const productVariantParamsSchema =

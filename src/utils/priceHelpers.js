@@ -111,7 +111,7 @@ export const validatePricePeriod = async (
     return {
       isValid: false,
       conflictingPrice: null,
-      message: "Scheduled price must have both start and end dates",
+      message: "Giá theo lịch phải có cả ngày bắt đầu và ngày kết thúc",
     };
   }
 

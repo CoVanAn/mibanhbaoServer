@@ -116,7 +116,7 @@ export class OrderService {
 
       if (!product || !variant) {
         throw new BadRequestError(
-          `Product or variant not found: productId=${item.productId}, variantId=${item.variantId}`,
+          `Không tìm thấy sản phẩm hoặc biến thể: productId=${item.productId}, variantId=${item.variantId}`,
         );
       }
 
@@ -150,13 +150,13 @@ export class OrderService {
 
     if (method === "DELIVERY") {
       if (!addressId) {
-        errors.push("Delivery address is required");
+        errors.push("Địa chỉ giao hàng là bắt buộc");
       } else {
         const address = await prisma.address.findUnique({
           where: { id: addressId },
         });
         if (!address) {
-          errors.push("Invalid delivery address");
+          errors.push("Địa chỉ giao hàng không hợp lệ");
         }
       }
     }
@@ -342,7 +342,7 @@ export class OrderService {
       addressId,
     );
     if (!validation.valid) {
-      throw new BadRequestError("Order validation failed", validation.errors);
+      throw new BadRequestError("Xác thực đơn hàng thất bại", validation.errors);
     }
 
     let coupon = null;
@@ -481,7 +481,7 @@ export class OrderService {
   }
 
   async getUserOrders(userId, { page = 1, limit = 10, status }) {
-    if (!userId) throw new AuthenticationError("Authentication required");
+    if (!userId) throw new AuthenticationError("Yêu cầu đăng nhập");
 
     const skip = (page - 1) * limit;
     const where = { userId, ...(status && { status }) };

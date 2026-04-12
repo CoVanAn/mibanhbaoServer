@@ -7,12 +7,12 @@ export const setProductCategories = async (req, res, next) => {
 
     const { categoryIds } = req.body;
     if (!Array.isArray(categoryIds)) {
-      return res.status(400).json({ message: "categoryIds must be array" });
+      return res.status(400).json({ message: "categoryIds phải là mảng" });
     }
 
     const existing = await prisma.product.findUnique({ where: { id: pid } });
     if (!existing)
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     // Validate categories exist
     if (categoryIds.length > 0) {
@@ -20,7 +20,7 @@ export const setProductCategories = async (req, res, next) => {
         where: { id: { in: categoryIds } },
       });
       if (categories.length !== categoryIds.length) {
-        return res.status(400).json({ message: "Some categories not found" });
+        return res.status(400).json({ message: "Không tìm thấy một số danh mục" });
       }
     }
 
@@ -32,7 +32,7 @@ export const setProductCategories = async (req, res, next) => {
       });
     }
 
-    return res.json({ success: true, message: "Categories updated" });
+    return res.json({ success: true, message: "Cập nhật danh mục thành công" });
   } catch (err) {
     return next(err);
   }
@@ -48,23 +48,23 @@ export const addProductCategory = async (req, res, next) => {
       prisma.product.findUnique({ where: { id: pid } }),
       prisma.category.findUnique({ where: { id: cid } }),
     ]);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     if (!category)
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(404).json({ message: "Không tìm thấy danh mục" });
 
     // Check if link already exists
     const existing = await prisma.productCategory.findUnique({
       where: { productId_categoryId: { productId: pid, categoryId: cid } },
     });
     if (existing) {
-      return res.status(400).json({ message: "Link already exists" });
+      return res.status(400).json({ message: "Liên kết đã tồn tại" });
     }
 
     await prisma.productCategory.create({
       data: { productId: pid, categoryId: cid },
     });
 
-    return res.json({ success: true, message: "Category added" });
+    return res.json({ success: true, message: "Thêm danh mục thành công" });
   } catch (err) {
     return next(err);
   }
@@ -80,7 +80,7 @@ export const removeProductCategoryLink = async (req, res, next) => {
       where: { productId: pid, categoryId: cid },
     });
 
-    return res.json({ success: true, message: "Category link removed" });
+    return res.json({ success: true, message: "Đã gỡ liên kết danh mục" });
   } catch (err) {
     return next(err);
   }

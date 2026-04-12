@@ -72,7 +72,7 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
               ? profile.emails[0].value
               : null;
           if (!email)
-            return done(new Error("Email not found in Google profile"), null);
+            return done(new Error("Không tìm thấy email trong hồ sơ Google"), null);
 
           // Try lookup by OAuthAccount first
           const existingOAuth = await prisma.oAuthAccount.findUnique({

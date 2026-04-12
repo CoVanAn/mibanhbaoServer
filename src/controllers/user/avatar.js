@@ -12,12 +12,12 @@ export const uploadAvatar = async (req, res) => {
     if (!req.file) {
       return res
         .status(400)
-        .json({ success: false, message: "No image file provided" });
+        .json({ success: false, message: "Không có tệp ảnh được cung cấp" });
     }
     const user = await userService.uploadAvatar(req.userId, req.file.buffer);
     return res.json({
       success: true,
-      message: "Avatar uploaded successfully",
+      message: "Tải ảnh đại diện lên thành công",
       user,
     });
   } catch (error) {
@@ -31,7 +31,7 @@ export const deleteAvatar = async (req, res) => {
     const user = await userService.deleteAvatar(req.userId);
     return res.json({
       success: true,
-      message: "Avatar deleted successfully",
+      message: "Xóa ảnh đại diện thành công",
       user,
     });
   } catch (error) {

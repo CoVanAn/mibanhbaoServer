@@ -36,7 +36,7 @@ const gracefulShutdown = (signal) => {
 // Connect to database
 try {
   await connectDB();
-  console.log("✅ Database connected successfully");
+  console.log("✅ Kết nối cơ sở dữ liệu thành công");
 } catch (error) {
   console.error("❌ Database connection failed:", error);
   process.exit(1);

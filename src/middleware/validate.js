@@ -19,7 +19,7 @@ export const validateBody = (schema) => {
 
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: "Dữ liệu không hợp lệ",
         errors,
       });
     }
@@ -45,7 +45,7 @@ export const validateParams = (schema) => {
 
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: "Dữ liệu không hợp lệ",
         errors,
       });
     }
@@ -71,7 +71,7 @@ export const validateQuery = (schema) => {
 
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: "Dữ liệu không hợp lệ",
         errors,
       });
     }

@@ -24,7 +24,7 @@ export const getAddress = async (req, res) => {
     if (!addressId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid address ID" });
+        .json({ success: false, message: "ID địa chỉ không hợp lệ" });
     }
     const address = await userService.getAddress(req.userId, addressId);
     return res.json({ success: true, address });
@@ -50,7 +50,7 @@ export const updateAddress = async (req, res) => {
     if (!addressId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid address ID" });
+        .json({ success: false, message: "ID địa chỉ không hợp lệ" });
     }
     const address = await userService.updateAddress(
       req.userId,
@@ -70,10 +70,10 @@ export const deleteAddress = async (req, res) => {
     if (!addressId) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid address ID" });
+        .json({ success: false, message: "ID địa chỉ không hợp lệ" });
     }
     await userService.deleteAddress(req.userId, addressId);
-    return res.json({ success: true, message: "Address deleted successfully" });
+    return res.json({ success: true, message: "Xóa địa chỉ thành công" });
   } catch (error) {
     return handleError(res, error);
   }

@@ -25,7 +25,7 @@ export default function optionalAuth(req, res, next) {
         req.userId = decoded.id;
       }
     } catch {
-      // Invalid token: continue as guest.
+      // Token không hợp lệ: continue as guest.
     }
   }
 

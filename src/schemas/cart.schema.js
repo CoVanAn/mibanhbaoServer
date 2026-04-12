@@ -11,17 +11,17 @@ import { z } from "zod";
  */
 export const addToCartSchema = z.object({
   variantId: z
-    .number({ required_error: "Variant ID is required" })
-    .int("Variant ID must be an integer")
-    .positive("Variant ID must be positive"),
+    .number({ required_error: "ID biến thể là bắt buộc" })
+    .int("ID biến thể phải là số nguyên")
+    .positive("ID biến thể phải lớn hơn 0"),
   productId: z
-    .number({ required_error: "Product ID is required" })
-    .int("Product ID must be an integer")
-    .positive("Product ID must be positive"),
+    .number({ required_error: "ID sản phẩm là bắt buộc" })
+    .int("ID sản phẩm phải là số nguyên")
+    .positive("ID sản phẩm phải lớn hơn 0"),
   quantity: z
     .number()
-    .int("Quantity must be an integer")
-    .min(1, "Quantity must be at least 1")
+    .int("Số lượng phải là số nguyên")
+    .min(1, "Số lượng phải ít nhất là 1")
     .max(999, "Quantity cannot exceed 999")
     .default(1),
   guestToken: z.string().optional(),
@@ -33,9 +33,9 @@ export const addToCartSchema = z.object({
  */
 export const updateCartItemSchema = z.object({
   quantity: z
-    .number({ required_error: "Quantity is required" })
-    .int("Quantity must be an integer")
-    .min(0, "Quantity must be at least 0")
+    .number({ required_error: "Số lượng là bắt buộc" })
+    .int("Số lượng phải là số nguyên")
+    .min(0, "Số lượng phải từ 0 trở lên")
     .max(999, "Quantity cannot exceed 999"),
 });
 
@@ -45,10 +45,10 @@ export const updateCartItemSchema = z.object({
  */
 export const applyCouponSchema = z.object({
   couponCode: z
-    .string({ required_error: "Coupon code is required" })
+    .string({ required_error: "Bắt buộc nhập mã giảm giá" })
     .trim()
     .toUpperCase()
-    .min(3, "Coupon code must be at least 3 characters")
+    .min(3, "Mã giảm giá phải có ít nhất 3 ký tự")
     .max(50, "Coupon code cannot exceed 50 characters"),
 });
 
@@ -57,7 +57,7 @@ export const applyCouponSchema = z.object({
  * POST /api/cart/merge
  */
 export const mergeCartSchema = z.object({
-  guestToken: z.string({ required_error: "Guest token is required" }),
+  guestToken: z.string({ required_error: "Guest token là bắt buộc" }),
 });
 
 /**
@@ -67,6 +67,6 @@ export const mergeCartSchema = z.object({
 export const cartItemIdSchema = z.object({
   itemId: z.coerce
     .number()
-    .int("Cart item ID must be an integer")
-    .positive("Cart item ID must be positive"),
+    .int("ID mặt hàng trong giỏ phải là số nguyên")
+    .positive("ID mặt hàng trong giỏ phải lớn hơn 0"),
 });
