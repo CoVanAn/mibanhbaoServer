@@ -9,6 +9,50 @@ dotenv.config();
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URI } =
   process.env;
 
+const toValidAbsoluteUrl = (value) => {
+  if (!value || typeof value !== "string") return null;
+  try {
+    return new URL(value).toString();
+  } catch {
+    return null;
+  }
+};
+
+const isLocalhostUrl = (value) => {
+  const normalized = toValidAbsoluteUrl(value);
+  if (!normalized) return false;
+  return new URL(normalized).hostname === "localhost";
+};
+
+const resolveGoogleCallbackUrl = () => {
+  const explicitCallback = toValidAbsoluteUrl(GOOGLE_OAUTH_REDIRECT_URI);
+  const deploymentBaseUrl =
+    toValidAbsoluteUrl(process.env.RENDER_EXTERNAL_URL) ||
+    toValidAbsoluteUrl(process.env.BACKEND_URL) ||
+    toValidAbsoluteUrl(process.env.SERVER_URL);
+
+  // In production, avoid localhost callback to prevent redirect_uri_mismatch.
+  if (process.env.NODE_ENV === "production") {
+    if (explicitCallback && !isLocalhostUrl(explicitCallback)) {
+      return explicitCallback;
+    }
+
+    if (deploymentBaseUrl) {
+      const callbackUrl = new URL("/auth/google/callback", deploymentBaseUrl);
+      if (explicitCallback && isLocalhostUrl(explicitCallback)) {
+        console.warn(
+          "[Google OAuth] GOOGLE_OAUTH_REDIRECT_URI is localhost in production. Falling back to deployment URL.",
+        );
+      }
+      return callbackUrl.toString();
+    }
+  }
+
+  return explicitCallback || "/auth/google/callback";
+};
+
+const googleCallbackUrl = resolveGoogleCallbackUrl();
+
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn(
     "⚠️  Google OAuth disabled: Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment",
@@ -19,7 +63,7 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: GOOGLE_OAUTH_REDIRECT_URI || "/auth/google/callback",
+        callbackURL: googleCallbackUrl,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
