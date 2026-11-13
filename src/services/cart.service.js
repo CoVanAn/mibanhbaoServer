@@ -14,7 +14,11 @@ export async function getOrCreateCart(userId, guestToken) {
   if (userId && guestToken) {
     const guestCart = await prisma.cart.findFirst({
       where: { guestToken },
-      include: { items: true },
+      include: {
+        items: {
+          orderBy: { id: "asc" },
+        },
+      },
     });
 
     if (guestCart && guestCart.items.length > 0) {
@@ -28,6 +32,7 @@ export async function getOrCreateCart(userId, guestToken) {
     where: whereClause,
     include: {
       items: {
+        orderBy: { id: "asc" },
         include: {
           product: {
             select: {
@@ -67,6 +72,7 @@ export async function getOrCreateCart(userId, guestToken) {
       data: userId ? { userId } : { guestToken },
       include: {
         items: {
+          orderBy: { id: "asc" },
           include: {
             product: {
               select: {
@@ -115,7 +121,11 @@ export async function mergeGuestCartToUser(userId, guestToken) {
     getOrCreateCart(userId, null),
     prisma.cart.findFirst({
       where: { guestToken },
-      include: { items: true },
+      include: {
+        items: {
+          orderBy: { id: "asc" },
+        },
+      },
     }),
   ]);
 
